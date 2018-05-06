@@ -11,5 +11,4 @@ cargo build
 cargo test
 cargo bench
 
-cd luascad; cargo build; cargo test; cargo bench; cd ..
-cd tessellation; cargo build; cargo test; cargo bench; cd ..
+cd luascad; cargo build; cargo test; cd ..
