@@ -1,13 +1,17 @@
+use super::Float;
 use hlua;
 use implicit3d::{Bender, BoundingBox, Cone, Cylinder, Intersection, Mesh, Object, SlabX, SlabY,
                  SlabZ, Sphere, Twister};
+use nalgebra as na;
 use std::sync::mpsc;
-use truescad_types::{Float, Point, Vector, INFINITY, NEG_INFINITY};
 
 #[derive(Clone, Debug)]
 pub struct LObject {
     pub o: Option<Box<Object<Float>>>,
 }
+
+pub const INFINITY: Float = 1e10;
+pub const NEG_INFINITY: Float = -1e10;
 
 
 // this macro implements the required trait so that we can *push* the object to lua
@@ -127,8 +131,8 @@ impl LObject {
                         conie = Cone::new(slope, offset) as Box<Object<Float>>;
                         let rmax = radius1.max(radius2);
                         let conie_box = BoundingBox::new(
-                            &Point::new(-rmax, -rmax, NEG_INFINITY),
-                            &Point::new(rmax, rmax, INFINITY),
+                            &na::Point3::new(-rmax, -rmax, NEG_INFINITY),
+                            &na::Point3::new(rmax, rmax, INFINITY),
                         );
                         conie.set_bbox(&conie_box);
                     }
@@ -193,7 +197,7 @@ impl LObject {
     fn translate(&mut self, x: Float, y: Float, z: Float) -> LObject {
         LObject {
             o: if let Some(ref obj) = self.o {
-                Some(obj.clone().translate(&Vector::new(x, y, z)))
+                Some(obj.clone().translate(&na::Vector3::new(x, y, z)))
             } else {
                 None
             },
@@ -202,7 +206,7 @@ impl LObject {
     fn rotate(&mut self, x: Float, y: Float, z: Float) -> LObject {
         LObject {
             o: if let Some(ref obj) = self.o {
-                Some(obj.clone().rotate(&Vector::new(x, y, z)))
+                Some(obj.clone().rotate(&na::Vector3::new(x, y, z)))
             } else {
                 None
             },
@@ -211,7 +215,7 @@ impl LObject {
     fn scale(&mut self, x: Float, y: Float, z: Float) -> LObject {
         LObject {
             o: if let Some(ref obj) = self.o {
-                Some(obj.clone().scale(&Vector::new(x, y, z)))
+                Some(obj.clone().scale(&na::Vector3::new(x, y, z)))
             } else {
                 None
             },

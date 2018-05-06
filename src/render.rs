@@ -4,23 +4,35 @@
 // pub type Ray = ray::Ray3<float>;
 // pub type Point = Point<float>;
 
+use super::Float;
 use alga::linear::Transformation;
 use implicit3d::Object;
+use nalgebra as na;
 use rayon::prelude::*;
 use std::cmp;
-use truescad_types::{Float, Point, Ray, Transform, Vector};
 
 const EPSILON: Float = 0.003;
 const APPROX_SLACK: Float = 0.1;
 
 const FOCAL_FACTOR: Float = 36. /* 36 mm film */ / 50.;
 
-// Normalized Vector for diagonally left above
+#[derive(Copy, Clone, Debug)]
+pub struct Ray {
+    pub origin: na::Point3<Float>,
+    pub dir: na::Vector3<Float>,
+}
+
+impl Ray {
+    pub fn new(o: na::Point3<Float>, d: na::Vector3<Float>) -> Ray {
+        Ray { origin: o, dir: d }
+    }
+}
+
 
 #[derive(Clone)]
 pub struct Renderer {
-    light_dir: Vector,
-    trans: Transform,
+    light_dir: na::Vector3<Float>,
+    trans: na::Matrix4<Float>,
     object: Option<Box<Object<Float>>>,
     epsilon: Float,
     maxval: Float,
@@ -30,8 +42,8 @@ pub struct Renderer {
 impl Renderer {
     pub fn new() -> Renderer {
         Renderer {
-            light_dir: Vector::new(-2. / 3., 2. / 3., -1. / 3.),
-            trans: Transform::identity(),
+            light_dir: na::Vector3::new(-2. / 3., 2. / 3., -1. / 3.),
+            trans: na::Matrix4::identity(),
             object: None,
             epsilon: EPSILON,
             maxval: 0.,
@@ -52,7 +64,7 @@ impl Renderer {
     }
 
     pub fn translate_from_screen(&mut self, x: Float, y: Float) {
-        let v = Vector::new(-x as Float, y as Float, 0.);
+        let v = na::Vector3::new(-x as Float, y as Float, 0.);
         self.trans = self.trans.append_translation(&v);
     }
 
@@ -60,7 +72,7 @@ impl Renderer {
         &self,
         obj: &Box<Object<Float>>,
         r: &Ray,
-        light_dir: &Vector,
+        light_dir: &na::Vector3<Float>,
         origin_value: Float,
     ) -> (usize, Float) {
         let mut cr = *r;
@@ -97,14 +109,14 @@ impl Renderer {
             let w2 = width / 2;
             let h2 = height / 2;
 
-            let dir_front = self.trans.transform_vector(&Vector::new(0., 0., 1.));
+            let dir_front = self.trans.transform_vector(&na::Vector3::new(0., 0., 1.));
             let dir_rl = self.trans
-                .transform_vector(&Vector::new(FOCAL_FACTOR, 0., 0.));
+                .transform_vector(&na::Vector3::new(FOCAL_FACTOR, 0., 0.));
             let dir_tb = self.trans
-                .transform_vector(&Vector::new(0., -FOCAL_FACTOR, 0.));
+                .transform_vector(&na::Vector3::new(0., -FOCAL_FACTOR, 0.));
             let light_dir = self.trans.transform_vector(&self.light_dir);
             let ray_origin = self.trans
-                .transform_point(&Point::new(0., 0., -viewer_dist));
+                .transform_point(&na::Point3::new(0., 0., -viewer_dist));
             let ray = Ray::new(ray_origin, dir_front);
 
 

@@ -1,3 +1,4 @@
+use super::Float;
 use gtk::Inhibit;
 use gtk::traits::*;
 use implicit3d;
@@ -11,7 +12,6 @@ use std::io::{BufReader, BufWriter};
 use std::io::prelude::*;
 use tessellation::{ImplicitFunction, ManifoldDualContouring, Mesh};
 use truescad_luascad;
-use truescad_types::Float;
 
 #[derive(Clone)]
 pub struct Editor {

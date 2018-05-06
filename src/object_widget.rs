@@ -1,3 +1,4 @@
+use super::Float;
 use cairo::{Context, Format, ImageSurface};
 use gtk::DrawingArea;
 use gtk::Inhibit;
@@ -5,7 +6,6 @@ use gtk::traits::*;
 use render;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
-use truescad_types::Float;
 
 pub struct ObjectWidget {
     pub drawing_area: DrawingArea,

@@ -12,6 +12,7 @@ extern crate gtk;
 extern crate implicit3d;
 extern crate kiss3d;
 extern crate nalgebra as na;
+extern crate nalgebra;
 extern crate num_traits;
 extern crate rayon;
 extern crate serde;
@@ -22,7 +23,6 @@ extern crate stl_io;
 extern crate tessellation;
 extern crate toml;
 extern crate truescad_luascad;
-extern crate truescad_types;
 
 pub mod render;
 pub mod object_widget;
@@ -31,3 +31,5 @@ pub mod menu;
 pub mod mesh_view;
 pub mod settings;
 pub mod window;
+
+type Float = f64;

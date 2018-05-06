@@ -3,7 +3,6 @@ extern crate bencher;
 extern crate implicit3d;
 extern crate truescad;
 extern crate truescad_luascad;
-extern crate truescad_types;
 use bencher::Bencher;
 
 

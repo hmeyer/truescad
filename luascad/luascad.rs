@@ -1,10 +1,11 @@
+use super::Float;
 use hlua;
 use hlua::{Lua, LuaError};
 use lobject::LObject;
 use lobject_vector::LObjectVector;
 use printbuffer;
 use sandbox;
-use truescad_types::Float;
+
 
 pub const USER_FUNCTION_NAME: &'static str = "__luscad_user_function__";
 pub const SANDBOX_ENV_NAME: &'static str = "__luascad_sandbox_env__";

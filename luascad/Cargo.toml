@@ -1,6 +1,6 @@
 [package]
 name = "truescad_luascad"
-version = "0.2.7"
+version = "0.2.8"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
 
 [lib]
@@ -10,5 +10,4 @@ path = "lib.rs"
 [dependencies]
 hlua = "0.3"
 implicit3d = "0.9"
-
-truescad_types = { path = "../types", version = "0.2.1" }
+nalgebra = "0.14"

@@ -1,7 +1,7 @@
+use super::Float;
 use hlua;
 use implicit3d::{Intersection, Object, Union};
 use lobject::LObject;
-use truescad_types::Float;
 
 // Struct to be used to construct boolean Objects.
 // The lua helpers below pump LObjects from Lua Arrays into this LObjectVector, which is then used

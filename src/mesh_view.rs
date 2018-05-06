@@ -1,3 +1,4 @@
+use super::Float;
 use kiss3d::light::Light;
 use kiss3d::window::Window;
 use na;
@@ -6,7 +7,6 @@ use std::mem;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex, Once, ONCE_INIT};
 use tessellation::Mesh;
-use truescad_types::Float;
 
 #[derive(Clone)]
 struct SingletonWindow {
