@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use std::mem;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex, Once, ONCE_INIT};
-use truescad_tessellation::Mesh;
+use tessellation::Mesh;
 use truescad_types::Float;
 
 #[derive(Clone)]

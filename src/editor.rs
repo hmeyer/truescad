@@ -9,8 +9,8 @@ use sourceview::{BufferExt, LanguageManagerExt, StyleSchemeManagerExt};
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::io::prelude::*;
+use tessellation::{ImplicitFunction, ManifoldDualContouring, Mesh};
 use truescad_luascad;
-use truescad_tessellation::{ImplicitFunction, ManifoldDualContouring, Mesh};
 use truescad_types::Float;
 
 #[derive(Clone)]
@@ -30,10 +30,10 @@ impl<S: ::std::fmt::Debug + na::Real + ::num_traits::Float + From<f32>> Implicit
     fn bbox(&self) -> &::implicit3d::BoundingBox<S> {
         self.implicit.bbox()
     }
-    fn value(&self, p: na::Point3<S>) -> S {
+    fn value(&self, p: &na::Point3<S>) -> S {
         self.implicit.approx_value(&p, self.resolution)
     }
-    fn normal(&self, p: na::Point3<S>) -> na::Vector3<S> {
+    fn normal(&self, p: &na::Point3<S>) -> na::Vector3<S> {
         self.implicit.normal(&p)
     }
 }

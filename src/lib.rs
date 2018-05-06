@@ -19,9 +19,9 @@ extern crate serde;
 extern crate serde_derive;
 extern crate sourceview;
 extern crate stl_io;
+extern crate tessellation;
 extern crate toml;
 extern crate truescad_luascad;
-extern crate truescad_tessellation;
 extern crate truescad_types;
 
 pub mod render;
