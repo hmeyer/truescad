@@ -4,6 +4,7 @@
 ./xplicit.scad
 *.stl
 *.scad
+*.lua
 *~
 *.bk
 _*.stl
