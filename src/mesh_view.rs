@@ -58,7 +58,7 @@ pub fn show_mesh(mesh: &Mesh<Float>) {
 fn tessellation_to_kiss3d_mesh(mesh: &Mesh<Float>) -> Rc<RefCell<::kiss3d::resource::Mesh>> {
     let mut na_verts = Vec::new();
     let mut na_faces = Vec::new();
-    for face in mesh.faces.iter() {
+    for face in &mesh.faces {
         let i = na_verts.len();
         na_faces.push(na::Point3::new(i as u32, (i + 1) as u32, (i + 2) as u32));
         for index in face.iter() {
@@ -67,10 +67,6 @@ fn tessellation_to_kiss3d_mesh(mesh: &Mesh<Float>) -> Rc<RefCell<::kiss3d::resou
         }
     }
     Rc::new(RefCell::new(::kiss3d::resource::Mesh::new(
-        na_verts,
-        na_faces,
-        None,
-        None,
-        true,
+        na_verts, na_faces, None, None, true,
     )))
 }

@@ -1,6 +1,6 @@
 use editor;
-use gtk::{FileChooserAction, FileChooserDialog, FileFilter, Inhibit, ResponseType};
 use gtk::traits::*;
+use gtk::{FileChooserAction, FileChooserDialog, FileFilter, Inhibit, ResponseType};
 use menu;
 use object_widget;
 use settings;
@@ -105,7 +105,7 @@ pub fn create_window() -> ::gtk::Window {
                                          }
                                      }
                                  }),
-        || ::gtk::main_quit(),
+        ::gtk::main_quit,
     );
 
     let v_pane = ::gtk::Paned::new(::gtk::Orientation::Vertical);
@@ -122,7 +122,7 @@ pub fn create_window() -> ::gtk::Window {
     v_pane.set_position(v_pane.get_allocated_height() * 80 / 100);
     h_pane.set_position(h_pane.get_allocated_width() * 50 / 100);
 
-    return window;
+    window
 }
 
 fn get_open_name<T: ::gtk::IsA<::gtk::Window>>(parent: Option<&T>) -> Option<String> {

@@ -1,6 +1,6 @@
 use super::Float;
-use gtk::Inhibit;
 use gtk::traits::*;
+use gtk::Inhibit;
 use implicit3d;
 use mesh_view;
 use na;
@@ -8,8 +8,8 @@ use object_widget;
 use settings;
 use sourceview::{BufferExt, LanguageManagerExt, StyleSchemeManagerExt};
 use std::fs::File;
-use std::io::{BufReader, BufWriter};
 use std::io::prelude::*;
+use std::io::{BufReader, BufWriter};
 use tessellation::{ImplicitFunction, ManifoldDualContouring, Mesh};
 use truescad_luascad;
 
@@ -26,7 +26,8 @@ struct ObjectAdaptor<S> {
 }
 
 impl<S: ::std::fmt::Debug + na::Real + ::num_traits::Float + From<f32>> ImplicitFunction<S>
-    for ObjectAdaptor<S> {
+    for ObjectAdaptor<S>
+{
     fn bbox(&self) -> &::implicit3d::BoundingBox<S> {
         self.implicit.bbox()
     }
@@ -71,7 +72,6 @@ impl Editor {
             println!("failed to get default LanguageManager.");
         }
 
-
         widget.add(&src_view);
         // TODO: Find out why this causes a non-draw on startup.
         // tv.set_wrap_mode(::gtk::WrapMode::WordChar);
@@ -79,26 +79,21 @@ impl Editor {
         let drawing_area = xw.drawing_area.clone();
         let debug_buffer_clone = debug_buffer.clone();
         let editor = Editor {
-            widget: widget,
+            widget,
             source_view: src_view,
-            buffer: buffer,
+            buffer,
         };
         let editor_clone = editor.clone();
 
         editor.source_view.connect_key_release_event(
             move |_: &::sourceview::View, key: &::gdk::EventKey| -> Inhibit {
-                match key.get_keyval() {
-                    ::gdk::enums::key::F5 => {
-                        // compile
-                        let mut output = Vec::new();
-                        let obj = editor_clone.get_object(&mut output);
-                        debug_buffer_clone.set_text(&String::from_utf8(output).unwrap());
-                        renderer.borrow_mut().set_object(obj);
-                        drawing_area.queue_draw();
-                    }
-                    _ => {
-                        // println!("unbound key release: {:?}", x);
-                    }
+                if let ::gdk::enums::key::F5 = key.get_keyval() {
+                    // compile
+                    let mut output = Vec::new();
+                    let obj = editor_clone.get_object(&mut output);
+                    debug_buffer_clone.set_text(&String::from_utf8(output).unwrap());
+                    renderer.borrow_mut().set_object(obj);
+                    drawing_area.queue_draw();
                 }
                 Inhibit(false)
             },
@@ -112,14 +107,13 @@ impl Editor {
                 &code_buffer.get_start_iter(),
                 &code_buffer.get_end_iter(),
                 true,
-            )
-            .unwrap();
+            ).unwrap();
         match truescad_luascad::eval(&code_text) {
             Ok((print_result, maybe_object)) => {
                 writeln!(msg, "{}", print_result).unwrap();
                 match maybe_object {
                     Some(mut o) => {
-                        let s = settings::SettingsData::new();
+                        let s = settings::SettingsData::default();
                         o.set_parameters(&implicit3d::PrimitiveParameters {
                             fade_range: s.fade_range,
                             r_multiplier: s.r_multiplier,
@@ -160,7 +154,7 @@ impl Editor {
     pub fn tessellate(&self) -> Option<Mesh<Float>> {
         let maybe_obj = self.get_object(&mut ::std::io::stdout());
         if let Some(obj) = maybe_obj {
-            let s = settings::SettingsData::new();
+            let s = settings::SettingsData::default();
             let adaptor = ObjectAdaptor {
                 implicit: obj,
                 resolution: s.tessellation_resolution,
@@ -176,7 +170,7 @@ impl Editor {
             }
             return mesh;
         }
-        return None;
+        None
     }
 }
 
@@ -189,16 +183,14 @@ fn save_from_sourceview(source_view: &::sourceview::View, filename: &str) {
                 &code_buffer.get_start_iter(),
                 &code_buffer.get_end_iter(),
                 true,
-            )
-            .unwrap();
+            ).unwrap();
         let mut writer = BufWriter::new(f);
         let write_result = writer.write(code_text.as_bytes());
         println!("writing {:?}: {:?}", &filename, write_result);
     } else {
         println!(
             "opening for write {:?} failed: {:?}",
-            &filename,
-            open_result
+            &filename, open_result
         );
     }
 }

@@ -1,7 +1,6 @@
 use hlua;
 use std::sync::mpsc;
 
-
 pub struct PrintBuffer {
     rx: mpsc::Receiver<String>,
     tx: mpsc::Sender<String>,
@@ -28,7 +27,7 @@ impl PrintBuffer {
             {env}.print = print;",
             env = env_name
         )).unwrap();
-        PrintBuffer { rx: rx, tx: tx }
+        PrintBuffer { rx, tx }
     }
     pub fn get_tx(&self) -> mpsc::Sender<String> {
         self.tx.clone()
@@ -38,6 +37,6 @@ impl PrintBuffer {
         for s in self.rx.try_iter() {
             result += &s;
         }
-        return result;
+        result
     }
 }

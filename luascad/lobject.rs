@@ -1,7 +1,9 @@
-use super::Float;
+use super::{Float, EPSILON};
 use hlua;
-use implicit3d::{Bender, BoundingBox, Cone, Cylinder, Intersection, Mesh, Object, SlabX, SlabY,
-                 SlabZ, Sphere, Twister};
+use implicit3d::{
+    Bender, BoundingBox, Cone, Cylinder, Intersection, Mesh, Object, SlabX, SlabY, SlabZ, Sphere,
+    Twister,
+};
 use nalgebra as na;
 use std::sync::mpsc;
 
@@ -13,7 +15,6 @@ pub struct LObject {
 pub const INFINITY: Float = 1e10;
 pub const NEG_INFINITY: Float = -1e10;
 
-
 // this macro implements the required trait so that we can *push* the object to lua
 // (ie. move it inside lua)
 implement_lua_push!(LObject, |mut metatable| {
@@ -24,21 +25,15 @@ implement_lua_push!(LObject, |mut metatable| {
 
         index.set(
             "translate",
-            ::hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| {
-                o.translate(x, y, z)
-            }),
+            ::hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| o.translate(x, y, z)),
         );
         index.set(
             "rotate",
-            ::hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| {
-                o.rotate(x, y, z)
-            }),
+            ::hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| o.rotate(x, y, z)),
         );
         index.set(
             "scale",
-            ::hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| {
-                o.scale(x, y, z)
-            }),
+            ::hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| o.scale(x, y, z)),
         );
         index.set("clone", ::hlua::function1(|o: &mut LObject| o.clone()));
     }
@@ -52,9 +47,8 @@ implement_lua_push!(LObject, |mut metatable| {
 // this macro implements the require traits so that we can *read* the object back
 implement_lua_read!(LObject);
 
-
 impl LObject {
-    pub fn into_object(&self) -> Option<Box<Object<Float>>> {
+    pub fn as_object(&self) -> Option<Box<Object<Float>>> {
         self.o.clone()
     }
     pub fn export_factories<'a, L>(env: &mut hlua::LuaTable<L>, console: mpsc::Sender<String>)
@@ -70,36 +64,32 @@ impl LObject {
                         smooth = v;
                     }
                     LObject {
-                        o: Some(Intersection::from_vec(
-                            vec![SlabX::new(x), SlabY::new(y), SlabZ::new(z)],
-                            smooth,
-                        ).unwrap() as Box<Object<Float>>),
+                        o: Some(
+                            Intersection::from_vec(
+                                vec![SlabX::new(x), SlabY::new(y), SlabZ::new(z)],
+                                smooth,
+                            ).unwrap() as Box<Object<Float>>,
+                        ),
                     }
                 },
             ),
         );
         env.set(
             "Sphere",
-            hlua::function1(|radius: Float| {
-                LObject {
-                    o: Some(Sphere::new(radius) as Box<Object<Float>>),
-                }
+            hlua::function1(|radius: Float| LObject {
+                o: Some(Sphere::new(radius) as Box<Object<Float>>),
             }),
         );
         env.set(
             "iCylinder",
-            hlua::function1(|radius: Float| {
-                LObject {
-                    o: Some(Cylinder::new(radius) as Box<Object<Float>>),
-                }
+            hlua::function1(|radius: Float| LObject {
+                o: Some(Cylinder::new(radius) as Box<Object<Float>>),
             }),
         );
         env.set(
             "iCone",
-            hlua::function1(|slope: Float| {
-                LObject {
-                    o: Some(Cone::new(slope, 0.) as Box<Object<Float>>),
-                }
+            hlua::function1(|slope: Float| LObject {
+                o: Some(Cone::new(slope, 0.) as Box<Object<Float>>),
             }),
         );
         env.set(
@@ -118,16 +108,15 @@ impl LObject {
                         }
                     }
                     let mut conie;
-                    if radius1 == radius2 {
+                    if (radius1 - radius2).abs() < EPSILON {
                         conie = Cylinder::new(radius1) as Box<Object<Float>>;
                     } else {
                         let slope = (radius2 - radius1).abs() / length;
-                        let offset;
-                        if radius1 < radius2 {
-                            offset = -radius1 / slope - length * 0.5;
+                        let offset = if radius1 < radius2 {
+                            -radius1 / slope - length * 0.5
                         } else {
-                            offset = radius2 / slope + length * 0.5;
-                        }
+                            radius2 / slope + length * 0.5
+                        };
                         conie = Cone::new(slope, offset) as Box<Object<Float>>;
                         let rmax = radius1.max(radius2);
                         let conie_box = BoundingBox::new(
@@ -147,50 +136,43 @@ impl LObject {
         );
         env.set(
             "Bend",
-            hlua::function2(|o: &LObject, width: Float| {
-                LObject {
-                    o: if let Some(obj) = o.into_object() {
-                        Some(Bender::new(obj, width) as Box<Object<Float>>)
-                    } else {
-                        None
-                    },
-                }
+            hlua::function2(|o: &LObject, width: Float| LObject {
+                o: if let Some(obj) = o.as_object() {
+                    Some(Bender::new(obj, width) as Box<Object<Float>>)
+                } else {
+                    None
+                },
             }),
         );
         env.set(
             "Twist",
-            hlua::function2(|o: &LObject, height: Float| {
-                LObject {
-                    o: if let Some(obj) = o.into_object() {
-                        Some(Twister::new(obj, height) as Box<Object<Float>>)
-                    } else {
-                        None
-                    },
-                }
+            hlua::function2(|o: &LObject, height: Float| LObject {
+                o: if let Some(obj) = o.as_object() {
+                    Some(Twister::new(obj, height) as Box<Object<Float>>)
+                } else {
+                    None
+                },
             }),
         );
         env.set(
             "Mesh",
-            hlua::function1(move |filename: String| {
-                LObject {
-                    o: match Mesh::new(&filename) {
-                        Ok(mesh) => {
-                            console
-                                .send(
-                                    "Warning: Mesh support is currently horribly inefficient!"
-                                        .to_string(),
-                                )
-                                .unwrap();
-                            Some(mesh as Box<Object<Float>>)
-                        }
-                        Err(e) => {
-                            console
-                                .send(format!("Could not read mesh: {:}", e))
-                                .unwrap();
-                            None
-                        }
-                    },
-                }
+            hlua::function1(move |filename: String| LObject {
+                o: match Mesh::new(&filename) {
+                    Ok(mesh) => {
+                        console
+                            .send(
+                                "Warning: Mesh support is currently horribly inefficient!"
+                                    .to_string(),
+                            ).unwrap();
+                        Some(mesh as Box<Object<Float>>)
+                    }
+                    Err(e) => {
+                        console
+                            .send(format!("Could not read mesh: {:}", e))
+                            .unwrap();
+                        None
+                    }
+                },
             }),
         );
     }

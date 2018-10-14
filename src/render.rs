@@ -1,6 +1,5 @@
 // pub use primitive::{Sphere};
 
-
 // pub type Ray = ray::Ray3<float>;
 // pub type Point = Point<float>;
 
@@ -27,7 +26,6 @@ impl Ray {
         Ray { origin: o, dir: d }
     }
 }
-
 
 #[derive(Clone)]
 pub struct Renderer {
@@ -60,7 +58,7 @@ impl Renderer {
 
     pub fn rotate_from_screen(&mut self, x: Float, y: Float) {
         let euler = ::na::Rotation::from_euler_angles(y, x, 0.).to_homogeneous();
-        self.trans = self.trans * euler;
+        self.trans *= euler;
     }
 
     pub fn translate_from_screen(&mut self, x: Float, y: Float) {
@@ -70,7 +68,7 @@ impl Renderer {
 
     fn cast_ray(
         &self,
-        obj: &Box<Object<Float>>,
+        obj: &Object<Float>,
         r: &Ray,
         light_dir: &na::Vector3<Float>,
         origin_value: Float,
@@ -81,7 +79,7 @@ impl Renderer {
 
         loop {
             cr.dir = cr.dir.normalize();
-            cr.origin = cr.origin + cr.dir * value;
+            cr.origin += cr.dir * value;
             value = obj.approx_value(&cr.origin, self.approx_slack);
             iter += 1;
             if value > self.maxval {
@@ -97,45 +95,45 @@ impl Renderer {
         if dot < 0. {
             return (iter, 0.);
         }
-        return (iter, dot);
+        (iter, dot)
     }
 
     pub fn draw_on_buf(&self, buf: &mut [u8], width: i32, height: i32) {
-        if let Some(ref my_obj) = self.object {
+        if let Some(my_obj) = &self.object {
             let object_width = self.object_width();
             let viewer_dist = FOCAL_FACTOR * object_width * 3.;
 
-            let scale = 1. / cmp::min(width, height) as Float;
+            let scale = 1. / Float::from(cmp::min(width, height));
             let w2 = width / 2;
             let h2 = height / 2;
 
             let dir_front = self.trans.transform_vector(&na::Vector3::new(0., 0., 1.));
-            let dir_rl = self.trans
+            let dir_rl = self
+                .trans
                 .transform_vector(&na::Vector3::new(FOCAL_FACTOR, 0., 0.));
-            let dir_tb = self.trans
+            let dir_tb = self
+                .trans
                 .transform_vector(&na::Vector3::new(0., -FOCAL_FACTOR, 0.));
             let light_dir = self.trans.transform_vector(&self.light_dir);
-            let ray_origin = self.trans
+            let ray_origin = self
+                .trans
                 .transform_point(&na::Point3::new(0., 0., -viewer_dist));
             let ray = Ray::new(ray_origin, dir_front);
 
-
-
             let origin_value = my_obj.approx_value(&ray.origin, self.approx_slack);
-
 
             let mut rows: Vec<_> = buf.chunks_mut((width * 4) as usize).enumerate().collect();
             rows.par_iter_mut().for_each(|y_and_buf| {
                 let y = y_and_buf.0 as i32;
                 let row_buf = &mut y_and_buf.1;
-                let dir_row = dir_front + dir_tb * ((y - h2) as Float * scale);
+                let dir_row = dir_front + dir_tb * (Float::from(y - h2) * scale);
                 let mut row_ray = ray;
                 let mut index: usize = 0;
 
                 for x in 0..width {
-                    row_ray.dir = dir_row + dir_rl * ((x - w2) as Float * scale);
+                    row_ray.dir = dir_row + dir_rl * (Float::from(x - w2) * scale);
 
-                    let (i, v) = self.cast_ray(my_obj, &row_ray, &light_dir, origin_value);
+                    let (i, v) = self.cast_ray(&**my_obj, &row_ray, &light_dir, origin_value);
 
                     let b = (255.0 * v * v) as u8;
 
@@ -164,5 +162,11 @@ impl Renderer {
                 * 2.;
         }
         0.
+    }
+}
+
+impl Default for Renderer {
+    fn default() -> Self {
+        Self::new()
     }
 }

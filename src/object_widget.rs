@@ -1,8 +1,8 @@
 use super::Float;
 use cairo::{Context, Format, ImageSurface};
+use gtk::traits::*;
 use gtk::DrawingArea;
 use gtk::Inhibit;
-use gtk::traits::*;
 use render;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -26,7 +26,7 @@ impl ObjectWidget {
                 .connect_draw(move |_: &DrawingArea, cr: &Context| {
                     let (clip_x1, clip_y1, clip_x2, clip_y2) = cr.clip_extents();
                     let (width, height) = (clip_x2 - clip_x1, clip_y2 - clip_y1);
-                    let image = draw_on_image(renderer_clone.clone(), width as i32, height as i32);
+                    let image = draw_on_image(&renderer_clone, width as i32, height as i32);
                     cr.set_source_surface(&image, 0., 0.);
                     cr.paint();
                     Inhibit(false)
@@ -49,8 +49,8 @@ impl ObjectWidget {
                     let (nx, ny) = em.get_position();
                     let (ox, oy) = mouse_pos_clone.get();
                     let (dx, dy) = (
-                        ((nx - ox) / da_alloc.width as f64) as Float,
-                        ((ny - oy) / da_alloc.height as f64) as Float,
+                        ((nx - ox) / f64::from(da_alloc.width)) as Float,
+                        ((ny - oy) / f64::from(da_alloc.height)) as Float,
                     );
                     mouse_pos_clone.set(em.get_position());
                     match em.get_state() {
@@ -81,11 +81,21 @@ impl ObjectWidget {
     }
 }
 
-fn draw_on_image(renderer: Rc<RefCell<render::Renderer>>, width: i32, height: i32) -> ImageSurface {
+impl Default for ObjectWidget {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+fn draw_on_image(
+    renderer: &Rc<RefCell<render::Renderer>>,
+    width: i32,
+    height: i32,
+) -> ImageSurface {
     let size: usize = (width * height * 4) as usize;
     let mut buf = vec![0; size].into_boxed_slice();
     renderer.borrow().draw_on_buf(&mut *buf, width, height);
     let image2 =
         ImageSurface::create_for_data(buf, move |_| {}, Format::Rgb24, width, height, width * 4);
-    return image2.unwrap();
+    image2.unwrap()
 }

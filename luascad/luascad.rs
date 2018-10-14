@@ -6,11 +6,12 @@ use lobject_vector::LObjectVector;
 use printbuffer;
 use sandbox;
 
+pub const USER_FUNCTION_NAME: &str = "__luscad_user_function__";
+pub const SANDBOX_ENV_NAME: &str = "__luascad_sandbox_env__";
 
-pub const USER_FUNCTION_NAME: &'static str = "__luscad_user_function__";
-pub const SANDBOX_ENV_NAME: &'static str = "__luascad_sandbox_env__";
+pub type EvalResult = Result<(String, Option<Box<::implicit3d::Object<Float>>>), LuaError>;
 
-pub fn eval(script: &str) -> Result<(String, Option<Box<::implicit3d::Object<Float>>>), LuaError> {
+pub fn eval(script: &str) -> EvalResult {
     let mut result = None;
     let print_output;
     {
@@ -24,7 +25,7 @@ pub fn eval(script: &str) -> Result<(String, Option<Box<::implicit3d::Object<Flo
             LObject::export_factories(&mut sandbox_env, printbuffer.get_tx());
             sandbox_env.set(
                 "build",
-                hlua::function1(|o: &LObject| result = o.into_object()),
+                hlua::function1(|o: &LObject| result = o.as_object()),
             );
         }
         // LObjectVector needs access to full lua object and the SANDBOX_ENV_NAME.
@@ -35,11 +36,9 @@ pub fn eval(script: &str) -> Result<(String, Option<Box<::implicit3d::Object<Flo
         // Use this script wrapper to execute USER_FUNCTION_NAME with sandbox env.
         try!(lua.execute::<()>(&format!(
             "debug.setupvalue({}, 1, {}); return {}();",
-            USER_FUNCTION_NAME,
-            SANDBOX_ENV_NAME,
-            USER_FUNCTION_NAME
+            USER_FUNCTION_NAME, SANDBOX_ENV_NAME, USER_FUNCTION_NAME
         )));
         print_output = printbuffer.get_buffer();
     }
-    return Ok((print_output, result));
+    Ok((print_output, result))
 }

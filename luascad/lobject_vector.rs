@@ -10,7 +10,6 @@ pub struct LObjectVector {
     pub v: Option<Vec<Box<Object<Float>>>>,
 }
 
-
 // this macro implements the required trait so that we can *push* the object to lua
 // (ie. move it inside lua)
 implement_lua_push!(LObjectVector, |mut metatable| {
@@ -19,14 +18,13 @@ implement_lua_push!(LObjectVector, |mut metatable| {
     index.set(
         "push",
         ::hlua::function2(|v: &mut LObjectVector, o: &mut LObject| {
-            v.push(o.into_object());
+            v.push(o.as_object());
         }),
     );
 });
 
 // this macro implements the require traits so that we can *read* the object back
 implement_lua_read!(LObjectVector);
-
 
 impl LObjectVector {
     pub fn new(o: Option<Box<Object<Float>>>) -> LObjectVector {
@@ -37,47 +35,39 @@ impl LObjectVector {
     pub fn export_factories(lua: &mut hlua::Lua, env_name: &str) {
         lua.set(
             "__new_object_vector",
-            hlua::function1(|o: &LObject| LObjectVector::new(o.into_object())),
+            hlua::function1(|o: &LObject| LObjectVector::new(o.as_object())),
         );
         lua.set(
             "__new_union",
-            hlua::function2(|o: &LObjectVector, smooth: Float| {
-                LObject {
-                    o: if let Some(ref v) = o.v {
-                        Some(Union::from_vec(v.clone(), smooth).unwrap()
-                            as Box<Object<Float>>)
-                    } else {
-                        None
-                    },
-                }
+            hlua::function2(|o: &LObjectVector, smooth: Float| LObject {
+                o: if let Some(ref v) = o.v {
+                    Some(Union::from_vec(v.clone(), smooth).unwrap() as Box<Object<Float>>)
+                } else {
+                    None
+                },
             }),
         );
         lua.set(
             "__new_intersection",
-            hlua::function2(|o: &LObjectVector, smooth: Float| {
-                LObject {
-                    o: if let Some(ref v) = o.v {
-                        Some(Intersection::from_vec(v.clone(), smooth).unwrap()
-                            as Box<Object<Float>>)
-                    } else {
-                        None
-                    },
-                }
+            hlua::function2(|o: &LObjectVector, smooth: Float| LObject {
+                o: if let Some(ref v) = o.v {
+                    Some(Intersection::from_vec(v.clone(), smooth).unwrap() as Box<Object<Float>>)
+                } else {
+                    None
+                },
             }),
         );
         lua.set(
             "__new_difference",
-            hlua::function2(|o: &LObjectVector, smooth: Float| {
-                LObject {
-                    o: if let Some(ref v) = o.v {
-                        Some(
-                            Intersection::difference_from_vec(v.clone(), smooth).unwrap()
-                                as Box<Object<Float>>,
-                        )
-                    } else {
-                        None
-                    },
-                }
+            hlua::function2(|o: &LObjectVector, smooth: Float| LObject {
+                o: if let Some(ref v) = o.v {
+                    Some(
+                        Intersection::difference_from_vec(v.clone(), smooth).unwrap()
+                            as Box<Object<Float>>,
+                    )
+                } else {
+                    None
+                },
             }),
         );
         lua.execute::<()>(&format!(

@@ -1,10 +1,12 @@
-use gtk::{BoxExt, ContainerExt, DialogExt, SpinButton, SpinButtonExt, SpinButtonSignals, WidgetExt};
+use gtk::{
+    BoxExt, ContainerExt, DialogExt, SpinButton, SpinButtonExt, SpinButtonSignals, WidgetExt,
+};
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::rc::Rc;
 
-const SETTINGS_FILENAME: &'static str = ".truescad";
+const SETTINGS_FILENAME: &str = ".truescad";
 
 macro_rules! add_setting {
     ($field :ident, $data :expr) => {{
@@ -22,9 +24,8 @@ macro_rules! add_setting {
     }};
 }
 
-
 pub fn show_settings_dialog<T: ::gtk::IsA<::gtk::Window>>(parent: Option<&T>) {
-    let data = Rc::new(RefCell::new(SettingsData::new()));
+    let data = Rc::new(RefCell::new(SettingsData::default()));
 
     let dialog = ::gtk::Dialog::new_with_buttons(
         Some("Settings"),
@@ -75,7 +76,7 @@ enum SettingsError {
 
 impl SettingsData {
     fn path() -> Result<::std::path::PathBuf, SettingsError> {
-        let mut path = match ::std::env::home_dir() {
+        let mut path = match ::dirs::home_dir() {
             Some(p) => p,
             None => try!(::std::env::current_dir().map_err(SettingsError::Io)),
         };
@@ -92,21 +93,7 @@ impl SettingsData {
                 .read_to_string(&mut buffer)
                 .map_err(SettingsError::Io)
         );
-        return ::toml::from_str(&buffer).map_err(SettingsError::Dec);
-    }
-    pub fn new() -> SettingsData {
-        match SettingsData::get_toml() {
-            Ok(c) => c,
-            Err(e) => {
-                println!("error reading settings: {:?}", e);
-                SettingsData {
-                    tessellation_resolution: 0.12,
-                    tessellation_error: 2.,
-                    fade_range: 0.1,
-                    r_multiplier: 1.0,
-                }
-            }
-        }
+        ::toml::from_str(&buffer).map_err(SettingsError::Dec)
     }
 
     fn put_toml(&self) -> Result<(), SettingsError> {
@@ -122,6 +109,23 @@ impl SettingsData {
         match self.put_toml() {
             Ok(_) => {}
             Err(e) => println!("error writing settings: {:?}", e),
+        }
+    }
+}
+
+impl Default for SettingsData {
+    fn default() -> SettingsData {
+        match SettingsData::get_toml() {
+            Ok(c) => c,
+            Err(e) => {
+                println!("error reading settings: {:?}", e);
+                SettingsData {
+                    tessellation_resolution: 0.12,
+                    tessellation_error: 2.,
+                    fade_range: 0.1,
+                    r_multiplier: 1.0,
+                }
+            }
         }
     }
 }
