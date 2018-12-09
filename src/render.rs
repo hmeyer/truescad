@@ -4,7 +4,6 @@
 // pub type Point = Point<float>;
 
 use super::Float;
-use alga::linear::Transformation;
 use implicit3d::Object;
 use nalgebra as na;
 use rayon::prelude::*;
