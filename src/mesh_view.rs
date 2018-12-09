@@ -1,7 +1,7 @@
 use super::Float;
 use kiss3d::light::Light;
 use kiss3d::window::Window;
-use na;
+use kiss3ddeps;
 use std::cell::RefCell;
 use std::mem;
 use std::rc::Rc;
@@ -42,7 +42,7 @@ pub fn show_mesh(mesh: &Mesh<Float>) {
     window.glfw_window_mut().set_should_close(false);
     window.glfw_window_mut().restore();
 
-    let scale = na::Vector3::new(1.0, 1.0, 1.0);
+    let scale = kiss3ddeps::Vector3::new(1.0, 1.0, 1.0);
     let mut object_node = window.add_mesh(tessellation_to_kiss3d_mesh(mesh), scale);
 
     object_node.set_color(1.0, 1.0, 0.0);
@@ -60,10 +60,18 @@ fn tessellation_to_kiss3d_mesh(mesh: &Mesh<Float>) -> Rc<RefCell<::kiss3d::resou
     let mut na_faces = Vec::new();
     for face in &mesh.faces {
         let i = na_verts.len();
-        na_faces.push(na::Point3::new(i as u32, (i + 1) as u32, (i + 2) as u32));
+        na_faces.push(kiss3ddeps::Point3::new(
+            i as u32,
+            (i + 1) as u32,
+            (i + 2) as u32,
+        ));
         for index in face.iter() {
             let p = &mesh.vertices[*index];
-            na_verts.push(na::Point3::new(p[0] as f32, p[1] as f32, p[2] as f32));
+            na_verts.push(kiss3ddeps::Point3::new(
+                p[0] as f32,
+                p[1] as f32,
+                p[2] as f32,
+            ));
         }
     }
     Rc::new(RefCell::new(::kiss3d::resource::Mesh::new(

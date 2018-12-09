@@ -1,8 +1,8 @@
 use super::{Float, EPSILON};
 use hlua;
 use implicit3d::{
-    Bender, BoundingBox, Cone, Cylinder, Intersection, Mesh, Object, SlabX, SlabY, SlabZ, Sphere,
-    Twister,
+    Bender, BoundingBox, Cone, Cylinder, Intersection, Mesh, Object, PlaneNegX, PlaneNegY,
+    PlaneNegZ, PlaneX, PlaneY, PlaneZ, Sphere, Twister,
 };
 use nalgebra as na;
 use std::sync::mpsc;
@@ -66,9 +66,17 @@ impl LObject {
                     LObject {
                         o: Some(
                             Intersection::from_vec(
-                                vec![SlabX::new(x), SlabY::new(y), SlabZ::new(z)],
+                                vec![
+                                    PlaneX::new(x / 2.0),
+                                    PlaneY::new(y / 2.0),
+                                    PlaneZ::new(z / 2.0),
+                                    PlaneNegX::new(x / 2.0),
+                                    PlaneNegY::new(y / 2.0),
+                                    PlaneNegZ::new(z / 2.0),
+                                ],
                                 smooth,
-                            ).unwrap() as Box<Object<Float>>,
+                            )
+                            .unwrap() as Box<Object<Float>>,
                         ),
                     }
                 },
@@ -127,8 +135,15 @@ impl LObject {
                     }
                     LObject {
                         o: Some(
-                            Intersection::from_vec(vec![conie, SlabZ::new(length)], smooth).unwrap()
-                                as Box<Object<Float>>,
+                            Intersection::from_vec(
+                                vec![
+                                    conie,
+                                    PlaneZ::new(length / 2.0),
+                                    PlaneNegZ::new(length / 2.0),
+                                ],
+                                smooth,
+                            )
+                            .unwrap() as Box<Object<Float>>,
                         ),
                     }
                 },
@@ -163,7 +178,8 @@ impl LObject {
                             .send(
                                 "Warning: Mesh support is currently horribly inefficient!"
                                     .to_string(),
-                            ).unwrap();
+                            )
+                            .unwrap();
                         Some(mesh as Box<Object<Float>>)
                     }
                     Err(e) => {

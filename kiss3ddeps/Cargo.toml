@@ -1,0 +1,11 @@
+[package]
+name = "kiss3ddeps"
+version = "0.1.0"
+authors = ["Henning Meyer <tutmann@gmail.com>"]
+
+[lib]
+name = "kiss3ddeps"
+path = "lib.rs"
+
+[dependencies]
+nalgebra = "0.14"

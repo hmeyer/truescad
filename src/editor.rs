@@ -25,8 +25,8 @@ struct ObjectAdaptor<S> {
     resolution: S,
 }
 
-impl<S: ::std::fmt::Debug + na::Real + ::num_traits::Float + From<f32>> ImplicitFunction<S>
-    for ObjectAdaptor<S>
+impl<S: ::std::fmt::Debug + na::Real + ::alga::general::Real + ::num_traits::Float + From<f32>>
+    ImplicitFunction<S> for ObjectAdaptor<S>
 {
     fn bbox(&self) -> &::implicit3d::BoundingBox<S> {
         self.implicit.bbox()

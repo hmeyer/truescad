@@ -19,6 +19,7 @@ extern crate rayon;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate kiss3ddeps;
 extern crate sourceview;
 extern crate stl_io;
 extern crate tessellation;
