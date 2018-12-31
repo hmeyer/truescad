@@ -4,7 +4,7 @@
 // pub type Point = Point<float>;
 
 use super::Float;
-use implicit3d::Object;
+use truescad_luascad::implicit3d::Object;
 use nalgebra as na;
 use rayon::prelude::*;
 use std::cmp;

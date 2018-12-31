@@ -17,7 +17,6 @@ serde_derive = "1.0"
 toml = "0.4"
 num-traits = "0.2"
 tessellation = "0.7"
-implicit3d = "0.11"
 truescad_luascad = { path = "luascad" }
 kiss3ddeps = { path = "kiss3ddeps" }
 stl_io = "0.3"

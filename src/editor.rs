@@ -1,7 +1,7 @@
 use super::Float;
 use gtk::traits::*;
 use gtk::Inhibit;
-use implicit3d;
+use truescad_luascad::implicit3d;
 use mesh_view;
 use na;
 use object_widget;
@@ -28,7 +28,7 @@ struct ObjectAdaptor<S> {
 impl<S: ::std::fmt::Debug + na::Real + ::alga::general::Real + ::num_traits::Float + From<f32>>
     ImplicitFunction<S> for ObjectAdaptor<S>
 {
-    fn bbox(&self) -> &::implicit3d::BoundingBox<S> {
+    fn bbox(&self) -> &implicit3d::BoundingBox<S> {
         self.implicit.bbox()
     }
     fn value(&self, p: &na::Point3<S>) -> S {

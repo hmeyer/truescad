@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate hlua;
-extern crate implicit3d;
+pub extern crate implicit3d;
 extern crate nalgebra;
 
 pub mod lobject;

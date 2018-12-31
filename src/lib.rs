@@ -10,7 +10,6 @@ extern crate cairo;
 extern crate dirs;
 extern crate gdk;
 extern crate gtk;
-extern crate implicit3d;
 extern crate kiss3d;
 extern crate nalgebra;
 extern crate nalgebra as na;
