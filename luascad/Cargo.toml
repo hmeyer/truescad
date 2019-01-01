@@ -1,6 +1,6 @@
 [package]
 name = "truescad_luascad"
-version = "0.2.9"
+version = "0.3.0"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
 
 [lib]

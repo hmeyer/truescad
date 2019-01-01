@@ -1,7 +1,6 @@
 use super::Float;
 use gtk::traits::*;
 use gtk::Inhibit;
-use truescad_luascad::implicit3d;
 use mesh_view;
 use na;
 use object_widget;
@@ -12,6 +11,7 @@ use std::io::prelude::*;
 use std::io::{BufReader, BufWriter};
 use tessellation::{ImplicitFunction, ManifoldDualContouring, Mesh};
 use truescad_luascad;
+use truescad_luascad::implicit3d;
 
 #[derive(Clone)]
 pub struct Editor {
@@ -107,7 +107,8 @@ impl Editor {
                 &code_buffer.get_start_iter(),
                 &code_buffer.get_end_iter(),
                 true,
-            ).unwrap();
+            )
+            .unwrap();
         match truescad_luascad::eval(&code_text) {
             Ok((print_result, maybe_object)) => {
                 writeln!(msg, "{}", print_result).unwrap();
@@ -164,7 +165,8 @@ impl Editor {
                 &adaptor,
                 s.tessellation_resolution,
                 s.tessellation_error,
-            ).tessellate();
+            )
+            .tessellate();
             if let Some(ref mesh) = mesh {
                 mesh_view::show_mesh(&mesh);
             }
@@ -183,7 +185,8 @@ fn save_from_sourceview(source_view: &::sourceview::View, filename: &str) {
                 &code_buffer.get_start_iter(),
                 &code_buffer.get_end_iter(),
                 true,
-            ).unwrap();
+            )
+            .unwrap();
         let mut writer = BufWriter::new(f);
         let write_result = writer.write(code_text.as_bytes());
         println!("writing {:?}: {:?}", &filename, write_result);

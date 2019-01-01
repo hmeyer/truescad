@@ -1126,7 +1126,7 @@ dependencies = [
 
 [[package]]
 name = "truescad"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "alga 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "bencher 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1145,12 +1145,12 @@ dependencies = [
  "stl_io 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tessellation 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "truescad_luascad 0.2.9",
+ "truescad_luascad 0.3.0",
 ]
 
 [[package]]
 name = "truescad_luascad"
-version = "0.2.9"
+version = "0.3.0"
 dependencies = [
  "hlua 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "implicit3d 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",

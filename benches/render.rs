@@ -5,8 +5,6 @@ extern crate truescad;
 extern crate truescad_luascad;
 use bencher::Bencher;
 
-
-
 static TWISTED_CUBE: &'static str = "
 t=Twist(Difference({Box(1,1,1,.2), Sphere(0.5)},.2),4)
 t:rotate(-math.pi/4,0,0)
@@ -29,9 +27,7 @@ fn render(b: &mut Bencher) {
     renderer.set_object(object);
     let mut buffer = [0u8; XRES * YRES * NUM_CHANNELS];
 
-    b.iter(|| {
-        renderer.draw_on_buf(&mut buffer, XRES as i32, YRES as i32)
-    });
+    b.iter(|| renderer.draw_on_buf(&mut buffer, XRES as i32, YRES as i32));
 }
 
 benchmark_group!(bench_render, render);

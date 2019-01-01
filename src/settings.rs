@@ -88,11 +88,9 @@ impl SettingsData {
         let f = try!(File::open(path).map_err(SettingsError::Io));
         let mut reader = BufReader::new(f);
         let mut buffer = String::new();
-        let _ = try!(
-            reader
-                .read_to_string(&mut buffer)
-                .map_err(SettingsError::Io)
-        );
+        let _ = try!(reader
+            .read_to_string(&mut buffer)
+            .map_err(SettingsError::Io));
         ::toml::from_str(&buffer).map_err(SettingsError::Dec)
     }
 

@@ -51,60 +51,60 @@ pub fn create_window() -> ::gtk::Window {
 
     let menu = menu::create_menu(
         clone!(editor; || {
-                                     editor.tessellate();
-                                 }),
+            editor.tessellate();
+        }),
         clone!(window, editor, filename; || {
-                                     if let Some(path_str) = get_open_name(Some(&window)) {
-                                         let mut f = filename.borrow_mut();
-                                         *f = path_str;
-                                         editor.open(&*f);
-                                     }
-                                 }),
+            if let Some(path_str) = get_open_name(Some(&window)) {
+                let mut f = filename.borrow_mut();
+                *f = path_str;
+                editor.open(&*f);
+            }
+        }),
         clone!(window, editor, filename; || {
-                                     let mut f = filename.borrow_mut();
-                                     if f.is_empty() {
-                                         if let Some(path) = get_save_name(Some(&window),
-                                                                           "*.lua") {
-                                             *f = path;
-                                             editor.save(&*f);
-                                         }
-                                     } else {
-                                         editor.save(&*f);
-                                     }
-                                 }),
+            let mut f = filename.borrow_mut();
+            if f.is_empty() {
+                if let Some(path) = get_save_name(Some(&window),
+                                                  "*.lua") {
+                    *f = path;
+                    editor.save(&*f);
+                }
+            } else {
+                editor.save(&*f);
+            }
+        }),
         clone!(window, editor, filename; || {
-                                     if let Some(path) = get_save_name(Some(&window),
-                                                                       "*.lua") {
-                                         let mut f = filename.borrow_mut();
-                                         *f = path;
-                                         editor.save(&*f);
-                                     }
-                                 }),
+            if let Some(path) = get_save_name(Some(&window),
+                                              "*.lua") {
+                let mut f = filename.borrow_mut();
+                *f = path;
+                editor.save(&*f);
+            }
+        }),
         clone!(window; || settings::show_settings_dialog(Some(&window))),
         clone!(window, editor; || {
-                                     let maybe_mesh = editor.tessellate();
-                                     if let Some(mesh) = maybe_mesh {
-                                         if let Some(path) = get_save_name(Some(&window),
-                                                                           "*.stl") {
-                                             let stl_mesh = mesh.faces.iter().enumerate().map(|(i, f)| {
-                                                 let normal = mesh.normal32(i);
-                                                 ::stl_io::Triangle{ normal:[normal[0], normal[1], normal[2]],
-                                                     vertices: [mesh.vertex32(f[0]),
-                                                      mesh.vertex32(f[1]),
-                                                      mesh.vertex32(f[2])]}
-                                             }).collect::<Vec<_>>();
-                                             match OpenOptions::new()
-                                                 .write(true)
-                                                 .create_new(true)
-                                                 .open(&path) {
-                                                     Ok(mut file) => println!("writing STL {:}: {:?}",
-                                                            path,
-                                                              write_stl(&mut file, stl_mesh.iter())),
-                                                              Err(e) =>println!("could not open {:} for writing: {:?}", path, e)
-                                                 }
-                                         }
-                                     }
-                                 }),
+            let maybe_mesh = editor.tessellate();
+            if let Some(mesh) = maybe_mesh {
+                if let Some(path) = get_save_name(Some(&window),
+                                                  "*.stl") {
+                    let stl_mesh = mesh.faces.iter().enumerate().map(|(i, f)| {
+                        let normal = mesh.normal32(i);
+                        ::stl_io::Triangle{ normal:[normal[0], normal[1], normal[2]],
+                            vertices: [mesh.vertex32(f[0]),
+                             mesh.vertex32(f[1]),
+                             mesh.vertex32(f[2])]}
+                    }).collect::<Vec<_>>();
+                    match OpenOptions::new()
+                        .write(true)
+                        .create_new(true)
+                        .open(&path) {
+                            Ok(mut file) => println!("writing STL {:}: {:?}",
+                                   path,
+                                     write_stl(&mut file, stl_mesh.iter())),
+                                     Err(e) =>println!("could not open {:} for writing: {:?}", path, e)
+                        }
+                }
+            }
+        }),
         ::gtk::main_quit,
     );
 
