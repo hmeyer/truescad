@@ -9,5 +9,5 @@ path = "lib.rs"
 
 [dependencies]
 hlua = "0.3"
-implicit3d = "0.11"
+implicit3d = "0.12"
 nalgebra = "0.16"

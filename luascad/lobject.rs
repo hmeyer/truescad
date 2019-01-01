@@ -67,12 +67,12 @@ impl LObject {
                         o: Some(
                             Intersection::from_vec(
                                 vec![
-                                    PlaneX::new(x / 2.0),
-                                    PlaneY::new(y / 2.0),
-                                    PlaneZ::new(z / 2.0),
-                                    PlaneNegX::new(x / 2.0),
-                                    PlaneNegY::new(y / 2.0),
-                                    PlaneNegZ::new(z / 2.0),
+                                    Box::new(PlaneX::new(x / 2.0)),
+                                    Box::new(PlaneY::new(y / 2.0)),
+                                    Box::new(PlaneZ::new(z / 2.0)),
+                                    Box::new(PlaneNegX::new(x / 2.0)),
+                                    Box::new(PlaneNegY::new(y / 2.0)),
+                                    Box::new(PlaneNegZ::new(z / 2.0)),
                                 ],
                                 smooth,
                             )
@@ -85,19 +85,19 @@ impl LObject {
         env.set(
             "Sphere",
             hlua::function1(|radius: Float| LObject {
-                o: Some(Sphere::new(radius) as Box<Object<Float>>),
+                o: Some(Box::new(Sphere::new(radius))),
             }),
         );
         env.set(
             "iCylinder",
             hlua::function1(|radius: Float| LObject {
-                o: Some(Cylinder::new(radius) as Box<Object<Float>>),
+                o: Some(Box::new(Cylinder::new(radius))),
             }),
         );
         env.set(
             "iCone",
             hlua::function1(|slope: Float| LObject {
-                o: Some(Cone::new(slope, 0.) as Box<Object<Float>>),
+                o: Some(Box::new(Cone::new(slope, 0.))),
             }),
         );
         env.set(
@@ -117,7 +117,7 @@ impl LObject {
                     }
                     let mut conie;
                     if (radius1 - radius2).abs() < EPSILON {
-                        conie = Cylinder::new(radius1) as Box<Object<Float>>;
+                        conie = Box::new(Cylinder::new(radius1)) as Box<Object<Float>>;
                     } else {
                         let slope = (radius2 - radius1).abs() / length;
                         let offset = if radius1 < radius2 {
@@ -125,7 +125,7 @@ impl LObject {
                         } else {
                             radius2 / slope + length * 0.5
                         };
-                        conie = Cone::new(slope, offset) as Box<Object<Float>>;
+                        conie = Box::new(Cone::new(slope, offset));
                         let rmax = radius1.max(radius2);
                         let conie_box = BoundingBox::new(
                             &na::Point3::new(-rmax, -rmax, NEG_INFINITY),
@@ -138,8 +138,8 @@ impl LObject {
                             Intersection::from_vec(
                                 vec![
                                     conie,
-                                    PlaneZ::new(length / 2.0),
-                                    PlaneNegZ::new(length / 2.0),
+                                    Box::new(PlaneZ::new(length / 2.0)),
+                                    Box::new(PlaneNegZ::new(length / 2.0)),
                                 ],
                                 smooth,
                             )
@@ -153,7 +153,7 @@ impl LObject {
             "Bend",
             hlua::function2(|o: &LObject, width: Float| LObject {
                 o: if let Some(obj) = o.as_object() {
-                    Some(Bender::new(obj, width) as Box<Object<Float>>)
+                    Some(Box::new(Bender::new(obj, width)))
                 } else {
                     None
                 },
@@ -163,7 +163,7 @@ impl LObject {
             "Twist",
             hlua::function2(|o: &LObject, height: Float| LObject {
                 o: if let Some(obj) = o.as_object() {
-                    Some(Twister::new(obj, height) as Box<Object<Float>>)
+                    Some(Box::new(Twister::new(obj, height)))
                 } else {
                     None
                 },
@@ -172,7 +172,7 @@ impl LObject {
         env.set(
             "Mesh",
             hlua::function1(move |filename: String| LObject {
-                o: match Mesh::new(&filename) {
+                o: match Mesh::try_new(&filename) {
                     Ok(mesh) => {
                         console
                             .send(
@@ -180,7 +180,7 @@ impl LObject {
                                     .to_string(),
                             )
                             .unwrap();
-                        Some(mesh as Box<Object<Float>>)
+                        Some(Box::new(mesh))
                     }
                     Err(e) => {
                         console
