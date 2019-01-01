@@ -41,7 +41,7 @@ impl LObjectVector {
             "__new_union",
             hlua::function2(|o: &LObjectVector, smooth: Float| LObject {
                 o: if let Some(ref v) = o.v {
-                    Some(Union::from_vec(v.clone(), smooth).unwrap() as Box<Object<Float>>)
+                    Some(Union::from_vec(v.clone(), smooth).unwrap())
                 } else {
                     None
                 },
@@ -51,7 +51,7 @@ impl LObjectVector {
             "__new_intersection",
             hlua::function2(|o: &LObjectVector, smooth: Float| LObject {
                 o: if let Some(ref v) = o.v {
-                    Some(Intersection::from_vec(v.clone(), smooth).unwrap() as Box<Object<Float>>)
+                    Some(Intersection::from_vec(v.clone(), smooth).unwrap())
                 } else {
                     None
                 },
@@ -62,8 +62,7 @@ impl LObjectVector {
             hlua::function2(|o: &LObjectVector, smooth: Float| LObject {
                 o: if let Some(ref v) = o.v {
                     Some(
-                        Intersection::difference_from_vec(v.clone(), smooth).unwrap()
-                            as Box<Object<Float>>,
+                        Intersection::difference_from_vec(v.clone(), smooth).unwrap(),
                     )
                 } else {
                     None

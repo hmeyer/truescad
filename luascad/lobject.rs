@@ -76,7 +76,7 @@ impl LObject {
                                 ],
                                 smooth,
                             )
-                            .unwrap() as Box<Object<Float>>,
+                            .unwrap(),
                         ),
                     }
                 },
@@ -143,7 +143,7 @@ impl LObject {
                                 ],
                                 smooth,
                             )
-                            .unwrap() as Box<Object<Float>>,
+                            .unwrap(),
                         ),
                     }
                 },
