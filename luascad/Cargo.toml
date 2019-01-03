@@ -1,6 +1,6 @@
 [package]
 name = "truescad_luascad"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
 
 [lib]
@@ -9,5 +9,5 @@ path = "lib.rs"
 
 [dependencies]
 hlua = "0.3"
-implicit3d = "0.12"
+implicit3d = "0.13"
 nalgebra = "0.16"

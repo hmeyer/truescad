@@ -565,7 +565,7 @@ dependencies = [
 
 [[package]]
 name = "implicit3d"
-version = "0.12.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "alga 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1126,7 +1126,7 @@ dependencies = [
 
 [[package]]
 name = "truescad"
-version = "0.5.1"
+version = "0.6.0"
 dependencies = [
  "alga 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "bencher 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1145,15 +1145,15 @@ dependencies = [
  "stl_io 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tessellation 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "truescad_luascad 0.3.0",
+ "truescad_luascad 0.4.0",
 ]
 
 [[package]]
 name = "truescad_luascad"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "hlua 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "implicit3d 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "implicit3d 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.16.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1258,7 +1258,7 @@ dependencies = [
 "checksum gtk-sys 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "905fcfbaaad1b44ec0b4bba9e4d527d728284c62bc2ba41fccedace2b096766f"
 "checksum hlua 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "943be6896e8b77886a45a0fbb823efa6550a17cf01a8745a8a24435c117144ea"
 "checksum image 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d1576ffa01849c91b484b95c01d54dddc242b4d50923eaa2d4d74a58c4b9e8fd"
-"checksum implicit3d 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)" = "98587d2249e08879afe7cd9cdb21b96f7be0ca987e0944d0aa817b38253404f7"
+"checksum implicit3d 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)" = "778a59b046d2818c3b1966ad8f0c7d892eca6b14bc617b9d409388887197c503"
 "checksum inflate 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "f5f9f47468e9a76a6452271efadc88fe865a82be91fe75e6c0c57b87ccea59d4"
 "checksum jpeg-decoder 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)" = "c8b7d43206b34b3f94ea9445174bda196e772049b9bddbc620c9d29b2d20110d"
 "checksum khronos_api 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "037ab472c33f67b5fbd3e9163a2645319e5356fcd355efa6d4eb7fff4bbcb554"
