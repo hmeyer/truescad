@@ -5,7 +5,8 @@ pub fn set_sandbox_env(lua: &mut hlua::Lua, env_var_name: &str) {
         "{env} = {val};",
         env = env_var_name,
         val = SANDBOX_ENV
-    )).unwrap();
+    ))
+    .unwrap();
 }
 
 // This env is taken from:

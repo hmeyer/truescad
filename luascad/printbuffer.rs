@@ -26,7 +26,8 @@ impl PrintBuffer {
             end
             {env}.print = print;",
             env = env_name
-        )).unwrap();
+        ))
+        .unwrap();
         PrintBuffer { rx, tx }
     }
     pub fn get_tx(&self) -> mpsc::Sender<String> {

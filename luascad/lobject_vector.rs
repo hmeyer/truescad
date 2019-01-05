@@ -61,9 +61,7 @@ impl LObjectVector {
             "__new_difference",
             hlua::function2(|o: &LObjectVector, smooth: Float| LObject {
                 o: if let Some(ref v) = o.v {
-                    Some(
-                        Intersection::difference_from_vec(v.clone(), smooth).unwrap(),
-                    )
+                    Some(Intersection::difference_from_vec(v.clone(), smooth).unwrap())
                 } else {
                     None
                 },
@@ -98,7 +96,8 @@ impl LObjectVector {
             {env}.Intersection = Intersection;
             {env}.Difference = Difference;",
             env = env_name
-        )).unwrap();
+        ))
+        .unwrap();
     }
     pub fn push(&mut self, o: Option<Box<Object<Float>>>) {
         if let Some(o) = o {
