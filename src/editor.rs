@@ -71,7 +71,7 @@ impl Editor {
         } else {
             println!("failed to get default LanguageManager.");
         }
-
+        src_view.set_monospace(true);
         widget.add(&src_view);
         // TODO: Find out why this causes a non-draw on startup.
         // tv.set_wrap_mode(::gtk::WrapMode::WordChar);

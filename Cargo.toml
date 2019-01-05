@@ -5,10 +5,9 @@ authors = ["Henning Meyer <tutmann@gmail.com>"]
 
 [dependencies]
 dirs = "1.0"
-gtk = "0.3.*"
-sourceview = "0.3.*"
-gdk = "0.7.*"
-cairo-rs = "0.3.*"
+sourceview = "^0"
+gdk = "^0"
+cairo-rs = "^0"
 nalgebra = "0.16"
 alga = "0.7"
 rayon = "1.0"
@@ -26,8 +25,12 @@ kiss3d = "0.13"
 bencher = "0.1.*"
 
 [features]
-gtk_3_10 = []
-gtk_3_14 = ["gtk_3_10"]
+gtk_3_10 = ["gtk/v3_10"]
+gtk_3_16 = ["gtk_3_10", "gtk/v3_16"]
+
+[dependencies.gtk]
+version = "0.5"
+features = ["v3_16"]
 
 # [profile.release]
 # lto = true
