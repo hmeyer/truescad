@@ -22,12 +22,12 @@ pub fn eval(script: &str) -> EvalResult {
             printbuffer::PrintBuffer::new_and_expose_to_lua(&mut lua, SANDBOX_ENV_NAME);
         {
             let mut sandbox_env = lua.get::<hlua::LuaTable<_>, _>(SANDBOX_ENV_NAME).unwrap();
-            LObject::export_factories(&mut sandbox_env, printbuffer.get_tx());
             sandbox_env.set(
                 "build",
                 hlua::function1(|o: &LObject| result = o.as_object()),
             );
         }
+        LObject::export_factories(&mut lua, SANDBOX_ENV_NAME, printbuffer.get_tx());
         // LObjectVector needs access to full lua object and the SANDBOX_ENV_NAME.
         LObjectVector::export_factories(&mut lua, SANDBOX_ENV_NAME);
 

@@ -51,146 +51,169 @@ impl LObject {
     pub fn as_object(&self) -> Option<Box<Object<Float>>> {
         self.o.clone()
     }
-    pub fn export_factories<'a, L>(env: &mut hlua::LuaTable<L>, console: mpsc::Sender<String>)
-    where
-        L: hlua::AsMutLua<'a>,
-    {
-        env.set(
-            "Box",
-            hlua::function4(
-                |x: Float, y: Float, z: Float, smooth_lua: hlua::AnyLuaValue| {
-                    let mut smooth = 0.;
-                    if let hlua::AnyLuaValue::LuaNumber(v) = smooth_lua {
-                        smooth = v;
-                    }
-                    LObject {
-                        o: Some(
-                            Intersection::from_vec(
-                                vec![
-                                    Box::new(PlaneX::new(x / 2.0)),
-                                    Box::new(PlaneY::new(y / 2.0)),
-                                    Box::new(PlaneZ::new(z / 2.0)),
-                                    Box::new(PlaneNegX::new(x / 2.0)),
-                                    Box::new(PlaneNegY::new(y / 2.0)),
-                                    Box::new(PlaneNegZ::new(z / 2.0)),
-                                ],
-                                smooth,
-                            )
-                            .unwrap(),
-                        ),
-                    }
-                },
-            ),
-        );
-        env.set(
-            "Sphere",
-            hlua::function1(|radius: Float| LObject {
-                o: Some(Box::new(Sphere::new(radius))),
-            }),
-        );
-        env.set(
-            "iCylinder",
-            hlua::function1(|radius: Float| LObject {
-                o: Some(Box::new(Cylinder::new(radius))),
-            }),
-        );
-        env.set(
-            "iCone",
-            hlua::function1(|slope: Float| LObject {
-                o: Some(Box::new(Cone::new(slope, 0.))),
-            }),
-        );
-        env.set(
-            "Cylinder",
-            hlua::function4(
-                |length: Float,
-                 radius1: Float,
-                 radius2_lua: hlua::AnyLuaValue,
-                 smooth_lua: hlua::AnyLuaValue| {
-                    let mut radius2 = radius1;
-                    let mut smooth = 0.;
-                    if let hlua::AnyLuaValue::LuaNumber(v) = radius2_lua {
-                        radius2 = v;
+    fn add_aliases(lua: &mut hlua::Lua, env_name: &str) {
+        lua.execute::<()>(&format!(r#"
+            function Cylinder (arg)
+                if type(arg.l) ~= "number" then
+                    error("l must be a valid number")
+                end
+                if type(arg.r) == "number" then
+                    r1 = arg.r
+                    r2 = arg.r
+                elseif type(arg.r1) == "number" and type(arg.r2) == "number" then
+                    r1 = arg.r1
+                    r2 = arg.r2
+                else
+                    error("specify either r or r1 and r2")
+                end
+                s = 0
+                if type(arg.s) == "number" then
+                    s = arg.s
+                end
+                return __Cylinder(r1, r2, arg.l, s)
+            end
+            {env}.Cylinder = Cylinder;
+            "#, env = env_name
+        ))
+        .unwrap();
+    }
+    // pub fn export_factories<'a, L>(env: &mut hlua::LuaTable<L>, console: mpsc::Sender<String>)
+    // where
+    //     L: hlua::AsMutLua<'a>,
+    pub fn export_factories(lua: &mut hlua::Lua, env_name: &str, console: mpsc::Sender<String>) {
+        {
+            let mut env = lua.get::<hlua::LuaTable<_>, _>(env_name).unwrap();
+
+            env.set(
+                "Box",
+                hlua::function4(
+                    |x: Float, y: Float, z: Float, smooth_lua: hlua::AnyLuaValue| {
+                        let mut smooth = 0.;
                         if let hlua::AnyLuaValue::LuaNumber(v) = smooth_lua {
                             smooth = v;
                         }
-                    }
-                    let mut conie;
-                    if (radius1 - radius2).abs() < EPSILON {
-                        conie = Box::new(Cylinder::new(radius1)) as Box<Object<Float>>;
+                        LObject {
+                            o: Some(
+                                Intersection::from_vec(
+                                    vec![
+                                        Box::new(PlaneX::new(x / 2.0)),
+                                        Box::new(PlaneY::new(y / 2.0)),
+                                        Box::new(PlaneZ::new(z / 2.0)),
+                                        Box::new(PlaneNegX::new(x / 2.0)),
+                                        Box::new(PlaneNegY::new(y / 2.0)),
+                                        Box::new(PlaneNegZ::new(z / 2.0)),
+                                    ],
+                                    smooth,
+                                )
+                                .unwrap(),
+                            ),
+                        }
+                    },
+                ),
+            );
+            env.set(
+                "Sphere",
+                hlua::function1(|radius: Float| LObject {
+                    o: Some(Box::new(Sphere::new(radius))),
+                }),
+            );
+            env.set(
+                "iCylinder",
+                hlua::function1(|radius: Float| LObject {
+                    o: Some(Box::new(Cylinder::new(radius))),
+                }),
+            );
+            env.set(
+                "iCone",
+                hlua::function1(|slope: Float| LObject {
+                    o: Some(Box::new(Cone::new(slope, 0.))),
+                }),
+            );
+            env.set(
+                "Bend",
+                hlua::function2(|o: &LObject, width: Float| LObject {
+                    o: if let Some(obj) = o.as_object() {
+                        Some(Box::new(Bender::new(obj, width)))
                     } else {
-                        let slope = (radius2 - radius1).abs() / length;
-                        let offset = if radius1 < radius2 {
-                            -radius1 / slope - length * 0.5
-                        } else {
-                            radius2 / slope + length * 0.5
-                        };
-                        conie = Box::new(Cone::new(slope, offset));
-                        let rmax = radius1.max(radius2);
-                        let conie_box = BoundingBox::new(
-                            &na::Point3::new(-rmax, -rmax, NEG_INFINITY),
-                            &na::Point3::new(rmax, rmax, INFINITY),
-                        );
-                        conie.set_bbox(&conie_box);
-                    }
-                    LObject {
-                        o: Some(
-                            Intersection::from_vec(
-                                vec![
-                                    conie,
-                                    Box::new(PlaneZ::new(length / 2.0)),
-                                    Box::new(PlaneNegZ::new(length / 2.0)),
-                                ],
-                                smooth,
-                            )
-                            .unwrap(),
-                        ),
-                    }
-                },
-            ),
-        );
-        env.set(
-            "Bend",
-            hlua::function2(|o: &LObject, width: Float| LObject {
-                o: if let Some(obj) = o.as_object() {
-                    Some(Box::new(Bender::new(obj, width)))
-                } else {
-                    None
-                },
-            }),
-        );
-        env.set(
-            "Twist",
-            hlua::function2(|o: &LObject, height: Float| LObject {
-                o: if let Some(obj) = o.as_object() {
-                    Some(Box::new(Twister::new(obj, height)))
-                } else {
-                    None
-                },
-            }),
-        );
-        env.set(
-            "Mesh",
-            hlua::function1(move |filename: String| LObject {
-                o: match Mesh::try_new(&filename) {
-                    Ok(mesh) => {
-                        console
-                            .send(
-                                "Warning: Mesh support is currently horribly inefficient!"
-                                    .to_string(),
-                            )
-                            .unwrap();
-                        Some(Box::new(mesh))
-                    }
-                    Err(e) => {
-                        console
-                            .send(format!("Could not read mesh: {:}", e))
-                            .unwrap();
                         None
-                    }
-                },
-            }),
-        );
+                    },
+                }),
+            );
+            env.set(
+                "Twist",
+                hlua::function2(|o: &LObject, height: Float| LObject {
+                    o: if let Some(obj) = o.as_object() {
+                        Some(Box::new(Twister::new(obj, height)))
+                    } else {
+                        None
+                    },
+                }),
+            );
+            env.set(
+                "Mesh",
+                hlua::function1(move |filename: String| LObject {
+                    o: match Mesh::try_new(&filename) {
+                        Ok(mesh) => {
+                            console
+                                .send(
+                                    "Warning: Mesh support is currently horribly inefficient!"
+                                        .to_string(),
+                                )
+                                .unwrap();
+                            Some(Box::new(mesh))
+                        }
+                        Err(e) => {
+                            console
+                                .send(format!("Could not read mesh: {:}", e))
+                                .unwrap();
+                            None
+                        }
+                    },
+                }),
+            );
+        }
+            lua.set(
+                "__Cylinder",
+                hlua::function4(
+                    |length: Float,
+                     radius1: Float,
+                     radius2: Float,
+                     smooth: Float| {
+                        let mut conie;
+                        if (radius1 - radius2).abs() < EPSILON {
+                            conie = Box::new(Cylinder::new(radius1)) as Box<Object<Float>>;
+                        } else {
+                            let slope = (radius2 - radius1).abs() / length;
+                            let offset = if radius1 < radius2 {
+                                -radius1 / slope - length * 0.5
+                            } else {
+                                radius2 / slope + length * 0.5
+                            };
+                            conie = Box::new(Cone::new(slope, offset));
+                            let rmax = radius1.max(radius2);
+                            let conie_box = BoundingBox::new(
+                                &na::Point3::new(-rmax, -rmax, NEG_INFINITY),
+                                &na::Point3::new(rmax, rmax, INFINITY),
+                            );
+                            conie.set_bbox(&conie_box);
+                        }
+                        LObject {
+                            o: Some(
+                                Intersection::from_vec(
+                                    vec![
+                                        conie,
+                                        Box::new(PlaneZ::new(length / 2.0)),
+                                        Box::new(PlaneNegZ::new(length / 2.0)),
+                                    ],
+                                    smooth,
+                                )
+                                .unwrap(),
+                            ),
+                        }
+                    },
+                ),
+            );
+        LObject::add_aliases(lua, env_name);
     }
     fn translate(&mut self, x: Float, y: Float, z: Float) -> LObject {
         LObject {
