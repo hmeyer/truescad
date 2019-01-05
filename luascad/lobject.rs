@@ -52,7 +52,8 @@ impl LObject {
         self.o.clone()
     }
     fn add_aliases(lua: &mut hlua::Lua, env_name: &str) {
-        lua.execute::<()>(&format!(r#"
+        lua.execute::<()>(&format!(
+            r#"
             function Cylinder (arg)
                 if type(arg.l) ~= "number" then
                     error("l must be a valid number")
@@ -73,7 +74,8 @@ impl LObject {
                 return __Cylinder(r1, r2, arg.l, s)
             end
             {env}.Cylinder = Cylinder;
-            "#, env = env_name
+            "#,
+            env = env_name
         ))
         .unwrap();
     }
@@ -172,47 +174,44 @@ impl LObject {
                 }),
             );
         }
-            lua.set(
-                "__Cylinder",
-                hlua::function4(
-                    |length: Float,
-                     radius1: Float,
-                     radius2: Float,
-                     smooth: Float| {
-                        let mut conie;
-                        if (radius1 - radius2).abs() < EPSILON {
-                            conie = Box::new(Cylinder::new(radius1)) as Box<Object<Float>>;
+        lua.set(
+            "__Cylinder",
+            hlua::function4(
+                |length: Float, radius1: Float, radius2: Float, smooth: Float| {
+                    let mut conie;
+                    if (radius1 - radius2).abs() < EPSILON {
+                        conie = Box::new(Cylinder::new(radius1)) as Box<Object<Float>>;
+                    } else {
+                        let slope = (radius2 - radius1).abs() / length;
+                        let offset = if radius1 < radius2 {
+                            -radius1 / slope - length * 0.5
                         } else {
-                            let slope = (radius2 - radius1).abs() / length;
-                            let offset = if radius1 < radius2 {
-                                -radius1 / slope - length * 0.5
-                            } else {
-                                radius2 / slope + length * 0.5
-                            };
-                            conie = Box::new(Cone::new(slope, offset));
-                            let rmax = radius1.max(radius2);
-                            let conie_box = BoundingBox::new(
-                                &na::Point3::new(-rmax, -rmax, NEG_INFINITY),
-                                &na::Point3::new(rmax, rmax, INFINITY),
-                            );
-                            conie.set_bbox(&conie_box);
-                        }
-                        LObject {
-                            o: Some(
-                                Intersection::from_vec(
-                                    vec![
-                                        conie,
-                                        Box::new(PlaneZ::new(length / 2.0)),
-                                        Box::new(PlaneNegZ::new(length / 2.0)),
-                                    ],
-                                    smooth,
-                                )
-                                .unwrap(),
-                            ),
-                        }
-                    },
-                ),
-            );
+                            radius2 / slope + length * 0.5
+                        };
+                        conie = Box::new(Cone::new(slope, offset));
+                        let rmax = radius1.max(radius2);
+                        let conie_box = BoundingBox::new(
+                            &na::Point3::new(-rmax, -rmax, NEG_INFINITY),
+                            &na::Point3::new(rmax, rmax, INFINITY),
+                        );
+                        conie.set_bbox(&conie_box);
+                    }
+                    LObject {
+                        o: Some(
+                            Intersection::from_vec(
+                                vec![
+                                    conie,
+                                    Box::new(PlaneZ::new(length / 2.0)),
+                                    Box::new(PlaneNegZ::new(length / 2.0)),
+                                ],
+                                smooth,
+                            )
+                            .unwrap(),
+                        ),
+                    }
+                },
+            ),
+        );
         LObject::add_aliases(lua, env_name);
     }
     fn translate(&mut self, x: Float, y: Float, z: Float) -> LObject {
