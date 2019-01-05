@@ -79,13 +79,33 @@ impl LObject {
         ))
         .unwrap();
     }
-    // pub fn export_factories<'a, L>(env: &mut hlua::LuaTable<L>, console: mpsc::Sender<String>)
-    // where
-    //     L: hlua::AsMutLua<'a>,
     pub fn export_factories(lua: &mut hlua::Lua, env_name: &str, console: mpsc::Sender<String>) {
         {
             let mut env = lua.get::<hlua::LuaTable<_>, _>(env_name).unwrap();
 
+            macro_rules! one_param_object {
+                ( $x:ident ) => {
+                    env.set(
+                        stringify!($x),
+                        hlua::function1(move |d_lua: hlua::AnyLuaValue| {
+                            let mut d = 0.;
+                            if let hlua::AnyLuaValue::LuaNumber(v) = d_lua {
+                                d = v;
+                            }
+                            LObject {
+                                o: Some(Box::new($x::new(d))),
+                            }
+                        }),
+                    );
+                };
+            }
+
+            one_param_object!(PlaneX);
+            one_param_object!(PlaneY);
+            one_param_object!(PlaneZ);
+            one_param_object!(PlaneNegX);
+            one_param_object!(PlaneNegY);
+            one_param_object!(PlaneNegZ);
             env.set(
                 "Box",
                 hlua::function4(
