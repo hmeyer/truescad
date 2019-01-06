@@ -1,8 +1,8 @@
 use super::{Float, EPSILON};
 use hlua;
 use implicit3d::{
-    Bender, BoundingBox, Cone, Cylinder, Intersection, Mesh, Object, PlaneNegX, PlaneNegY,
-    PlaneNegZ, PlaneX, PlaneY, PlaneZ, Sphere, Twister,
+    Bender, BoundingBox, Cone, Cylinder, Intersection, Mesh, NormalPlane, Object, PlaneNegX,
+    PlaneNegY, PlaneNegZ, PlaneX, PlaneY, PlaneZ, Sphere, Twister,
 };
 use nalgebra as na;
 use std::sync::mpsc;
@@ -73,7 +73,33 @@ impl LObject {
                 end
                 return __Cylinder(r1, r2, arg.l, s)
             end
+            function Plane3Points (a,b,c)
+                if type(a) ~= "table" or type(b) ~= "table" or type(c) ~= "table" or
+                    #a ~= 3 or #b ~= 3 or #c ~= 3 then
+                    error("all three arguments must be tables of len 3")
+                end
+                for i=1,3 do
+                  if type(a[i]) ~= "number" or type(b[i]) ~= "number" or type(c[i]) ~= "number" then
+                    error("all table elements must be numbers")
+                  end
+                end
+                return __Plane3Points(a[1], a[2], a[3],
+                                      b[1], b[2], b[3],
+                                      c[1], c[2], c[3])
+            end
+            function PlaneHessian (n,p)
+                if type(n) ~= "table" or #n ~= 3 or
+                    type(n[1]) ~= "number" or type(n[2]) ~= "number" or type(n[3]) ~= "number" then
+                    error("first argument (normal) must be a table of 3 numbers")
+                end
+                if type(p) ~= "number" then
+                    error("second argument must be a number (p in hessian form)")
+                end
+                return __PlaneHessian(n[1], n[2], n[3], p)
+            end
             {env}.Cylinder = Cylinder;
+            {env}.Plane3Points = Plane3Points;
+            {env}.PlaneHessian = PlaneHessian;
             "#,
             env = env_name
         ))
@@ -194,6 +220,37 @@ impl LObject {
                 }),
             );
         }
+        lua.set(
+            "__PlaneHessian",
+            hlua::function4(|nx: Float, ny: Float, nz: Float, p: Float| LObject {
+                o: Some(Box::new(NormalPlane::from_normal_and_p(
+                    na::Vector3::new(nx, ny, nz),
+                    p,
+                ))),
+            }),
+        );
+        lua.set(
+            "__Plane3Points",
+            hlua::function9(
+                |ax: Float,
+                 ay: Float,
+                 az: Float,
+                 bx: Float,
+                 by: Float,
+                 bz: Float,
+                 cx: Float,
+                 cy: Float,
+                 cz: Float| {
+                    LObject {
+                        o: Some(Box::new(NormalPlane::from_3_points(
+                            &na::Point3::new(ax, ay, az),
+                            &na::Point3::new(bx, by, bz),
+                            &na::Point3::new(cx, cy, cz),
+                        ))),
+                    }
+                },
+            ),
+        );
         lua.set(
             "__Cylinder",
             hlua::function4(
