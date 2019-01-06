@@ -95,7 +95,6 @@ fn draw_on_image(
     let size: usize = (width * height * 4) as usize;
     let mut buf = vec![0; size].into_boxed_slice();
     renderer.borrow().draw_on_buf(&mut *buf, width, height);
-    let image2 =
-        ImageSurface::create_for_data(buf, Format::Rgb24, width, height, width * 4);
+    let image2 = ImageSurface::create_for_data(buf, Format::Rgb24, width, height, width * 4);
     image2.unwrap()
 }
