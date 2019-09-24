@@ -71,7 +71,7 @@ impl LObject {
                 if type(arg.s) == "number" then
                     s = arg.s
                 end
-                return __Cylinder(r1, r2, arg.l, s)
+                return __Cylinder(arg.l, r1, r2, s)
             end
             function Plane3Points (a,b,c)
                 if type(a) ~= "table" or type(b) ~= "table" or type(c) ~= "table" or
