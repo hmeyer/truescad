@@ -206,24 +206,21 @@ impl LObject {
         }
         lua.set(
             "__Box",
-            hlua::function4(|x: Float, y: Float, z: Float, smooth: Float| {
-                println!("Box {} {} {} {}", x, y, z, smooth);
-                LObject {
-                    o: Some(
-                        Intersection::from_vec(
-                            vec![
-                                Box::new(PlaneX::new(x / 2.0)),
-                                Box::new(PlaneY::new(y / 2.0)),
-                                Box::new(PlaneZ::new(z / 2.0)),
-                                Box::new(PlaneNegX::new(x / 2.0)),
-                                Box::new(PlaneNegY::new(y / 2.0)),
-                                Box::new(PlaneNegZ::new(z / 2.0)),
-                            ],
-                            smooth,
-                        )
-                        .unwrap(),
-                    ),
-                }
+            hlua::function4(|x: Float, y: Float, z: Float, smooth: Float| LObject {
+                o: Some(
+                    Intersection::from_vec(
+                        vec![
+                            Box::new(PlaneX::new(x / 2.0)),
+                            Box::new(PlaneY::new(y / 2.0)),
+                            Box::new(PlaneZ::new(z / 2.0)),
+                            Box::new(PlaneNegX::new(x / 2.0)),
+                            Box::new(PlaneNegY::new(y / 2.0)),
+                            Box::new(PlaneNegZ::new(z / 2.0)),
+                        ],
+                        smooth,
+                    )
+                    .unwrap(),
+                ),
             }),
         );
         lua.set(
