@@ -54,6 +54,16 @@ impl LObject {
     fn add_aliases(lua: &mut hlua::Lua, env_name: &str) {
         lua.execute::<()>(&format!(
             r#"
+            function Box (x, y, z, smooth)
+                if type(x) ~= "number" or type(x) ~= "number" or type(y) ~= "number" then
+                    error("all arguments must be numbers")
+                end
+                s = 0
+                if type(smooth) == "number" then
+                    s = smooth
+                end
+                return __Box(x, y, z, s)
+            end
             function Cylinder (arg)
                 if type(arg.l) ~= "number" then
                     error("l must be a valid number")
@@ -97,6 +107,7 @@ impl LObject {
                 end
                 return __PlaneHessian(n[1], n[2], n[3], p)
             end
+            {env}.Box = Box;
             {env}.Cylinder = Cylinder;
             {env}.Plane3Points = Plane3Points;
             {env}.PlaneHessian = PlaneHessian;
@@ -132,33 +143,6 @@ impl LObject {
             one_param_object!(PlaneNegX);
             one_param_object!(PlaneNegY);
             one_param_object!(PlaneNegZ);
-            env.set(
-                "Box",
-                hlua::function4(
-                    |x: Float, y: Float, z: Float, smooth_lua: hlua::AnyLuaValue| {
-                        let mut smooth = 0.;
-                        if let hlua::AnyLuaValue::LuaNumber(v) = smooth_lua {
-                            smooth = v;
-                        }
-                        LObject {
-                            o: Some(
-                                Intersection::from_vec(
-                                    vec![
-                                        Box::new(PlaneX::new(x / 2.0)),
-                                        Box::new(PlaneY::new(y / 2.0)),
-                                        Box::new(PlaneZ::new(z / 2.0)),
-                                        Box::new(PlaneNegX::new(x / 2.0)),
-                                        Box::new(PlaneNegY::new(y / 2.0)),
-                                        Box::new(PlaneNegZ::new(z / 2.0)),
-                                    ],
-                                    smooth,
-                                )
-                                .unwrap(),
-                            ),
-                        }
-                    },
-                ),
-            );
             env.set(
                 "Sphere",
                 hlua::function1(|radius: Float| LObject {
@@ -220,6 +204,28 @@ impl LObject {
                 }),
             );
         }
+        lua.set(
+            "__Box",
+            hlua::function4(|x: Float, y: Float, z: Float, smooth: Float| {
+                println!("Box {} {} {} {}", x, y, z, smooth);
+                LObject {
+                    o: Some(
+                        Intersection::from_vec(
+                            vec![
+                                Box::new(PlaneX::new(x / 2.0)),
+                                Box::new(PlaneY::new(y / 2.0)),
+                                Box::new(PlaneZ::new(z / 2.0)),
+                                Box::new(PlaneNegX::new(x / 2.0)),
+                                Box::new(PlaneNegY::new(y / 2.0)),
+                                Box::new(PlaneNegZ::new(z / 2.0)),
+                            ],
+                            smooth,
+                        )
+                        .unwrap(),
+                    ),
+                }
+            }),
+        );
         lua.set(
             "__PlaneHessian",
             hlua::function4(|nx: Float, ny: Float, nz: Float, p: Float| LObject {
