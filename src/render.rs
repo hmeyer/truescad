@@ -30,7 +30,7 @@ impl Ray {
 pub struct Renderer {
     light_dir: na::Vector3<Float>,
     trans: na::Matrix4<Float>,
-    object: Option<Box<Object<Float>>>,
+    object: Option<Box<dyn Object<Float>>>,
     epsilon: Float,
     maxval: Float,
     approx_slack: Float,
@@ -48,7 +48,7 @@ impl Renderer {
         }
     }
 
-    pub fn set_object(&mut self, object: Option<Box<Object<Float>>>) {
+    pub fn set_object(&mut self, object: Option<Box<dyn Object<Float>>>) {
         self.object = object;
         self.epsilon = self.object_width() * EPSILON;
         self.maxval = self.object_width();
@@ -67,7 +67,7 @@ impl Renderer {
 
     fn cast_ray(
         &self,
-        obj: &Object<Float>,
+        obj: &dyn Object<Float>,
         r: &Ray,
         light_dir: &na::Vector3<Float>,
         origin_value: Float,
