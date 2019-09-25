@@ -95,7 +95,8 @@ pub fn create_window() -> ::gtk::Window {
                     }).collect::<Vec<_>>();
                     match OpenOptions::new()
                         .write(true)
-                        .create_new(true)
+                        .create(true)
+                        .truncate(true)
                         .open(&path) {
                             Ok(mut file) => println!("writing STL {:}: {:?}",
                                    path,
