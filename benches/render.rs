@@ -4,7 +4,7 @@ extern crate truescad;
 extern crate truescad_luascad;
 use bencher::Bencher;
 
-static TWISTED_CUBE: &'static str = "
+static TWISTED_CUBE: &str = "
 t=Twist(Difference({Box(1,1,1,.2), Sphere(0.5)},.2),4)
 t:rotate(-math.pi/4,0,0)
 build(t)";
