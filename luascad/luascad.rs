@@ -9,7 +9,7 @@ use sandbox;
 pub const USER_FUNCTION_NAME: &str = "__luscad_user_function__";
 pub const SANDBOX_ENV_NAME: &str = "__luascad_sandbox_env__";
 
-pub type EvalResult = Result<(String, Option<Box<::implicit3d::Object<Float>>>), LuaError>;
+pub type EvalResult = Result<(String, Option<Box<dyn implicit3d::Object<Float>>>), LuaError>;
 
 pub fn eval(script: &str) -> EvalResult {
     let mut result = None;

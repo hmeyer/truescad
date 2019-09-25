@@ -7,7 +7,7 @@ use lobject::LObject;
 // The lua helpers below pump LObjects from Lua Arrays into this LObjectVector, which is then used
 // to construct the boolean Objects.
 pub struct LObjectVector {
-    pub v: Option<Vec<Box<Object<Float>>>>,
+    pub v: Option<Vec<Box<dyn Object<Float>>>>,
 }
 
 // this macro implements the required trait so that we can *push* the object to lua
@@ -27,7 +27,7 @@ implement_lua_push!(LObjectVector, |mut metatable| {
 implement_lua_read!(LObjectVector);
 
 impl LObjectVector {
-    pub fn new(o: Option<Box<Object<Float>>>) -> LObjectVector {
+    pub fn new(o: Option<Box<dyn Object<Float>>>) -> LObjectVector {
         LObjectVector {
             v: if let Some(o) = o { Some(vec![o]) } else { None },
         }
@@ -99,7 +99,7 @@ impl LObjectVector {
         ))
         .unwrap();
     }
-    pub fn push(&mut self, o: Option<Box<Object<Float>>>) {
+    pub fn push(&mut self, o: Option<Box<dyn Object<Float>>>) {
         if let Some(o) = o {
             if let Some(ref mut v) = self.v {
                 v.push(o);

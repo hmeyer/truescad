@@ -9,7 +9,7 @@ use std::sync::mpsc;
 
 #[derive(Clone, Debug)]
 pub struct LObject {
-    pub o: Option<Box<Object<Float>>>,
+    pub o: Option<Box<dyn Object<Float>>>,
 }
 
 pub const INFINITY: Float = 1e10;
@@ -48,7 +48,7 @@ implement_lua_push!(LObject, |mut metatable| {
 implement_lua_read!(LObject);
 
 impl LObject {
-    pub fn as_object(&self) -> Option<Box<Object<Float>>> {
+    pub fn as_object(&self) -> Option<Box<dyn Object<Float>>> {
         self.o.clone()
     }
     fn add_aliases(lua: &mut hlua::Lua, env_name: &str) {
@@ -260,7 +260,7 @@ impl LObject {
                 |length: Float, radius1: Float, radius2: Float, smooth: Float| {
                     let mut conie;
                     if (radius1 - radius2).abs() < EPSILON {
-                        conie = Box::new(Cylinder::new(radius1)) as Box<Object<Float>>;
+                        conie = Box::new(Cylinder::new(radius1)) as Box<dyn Object<Float>>;
                     } else {
                         let slope = (radius2 - radius1).abs() / length;
                         let offset = if radius1 < radius2 {
