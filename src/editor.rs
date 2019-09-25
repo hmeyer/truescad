@@ -21,7 +21,7 @@ pub struct Editor {
 }
 
 struct ObjectAdaptor<S> {
-    implicit: Box<implicit3d::Object<S>>,
+    implicit: Box<dyn implicit3d::Object<S>>,
     resolution: S,
 }
 
@@ -100,7 +100,7 @@ impl Editor {
         );
         editor
     }
-    fn get_object(&self, msg: &mut Write) -> Option<Box<implicit3d::Object<Float>>> {
+    fn get_object(&self, msg: &mut dyn Write) -> Option<Box<dyn implicit3d::Object<Float>>> {
         let code_buffer = self.source_view.get_buffer().unwrap();
         let code_text = code_buffer
             .get_text(
