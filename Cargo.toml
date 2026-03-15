@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "luascad", "kiss3ddeps"]
+
 [package]
 name = "truescad"
 version = "0.8.0"
