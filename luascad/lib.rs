@@ -1,18 +1,13 @@
-#[macro_use]
-extern crate hlua;
 pub extern crate implicit3d;
-extern crate nalgebra;
+pub extern crate nalgebra;
 
-pub mod lobject;
-pub mod lobject_vector;
+mod lobject;
 pub mod luascad;
-pub mod printbuffer;
-pub mod sandbox;
-
-pub use self::luascad::eval;
 
 #[cfg(test)]
 mod tests;
+
+pub use self::luascad::eval;
 
 type Float = f64;
 const EPSILON: f64 = std::f64::EPSILON;

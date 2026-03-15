@@ -1,13 +1,15 @@
 [package]
 name = "truescad_luascad"
-version = "0.5.4"
+version = "0.6.0"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
+edition = "2021"
 
 [lib]
 name = "truescad_luascad"
 path = "lib.rs"
 
 [dependencies]
-hlua = "0.3"
+piccolo = "0.3"
+gc-arena = "0.5"
 implicit3d = "0.16"
 nalgebra = "0.34"

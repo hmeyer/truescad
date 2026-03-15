@@ -291,9 +291,11 @@ fn test_no_build_returns_none() {
 
 // === Error handling ===
 
-// Note: test_syntax_error is skipped because hlua has UB on modern Rust
-// that causes a hard abort when handling parse errors. This will be fixed
-// when we switch to piccolo.
+#[test]
+fn test_syntax_error() {
+    let result = eval("this is not valid lua !@#$");
+    assert!(result.is_err());
+}
 
 #[test]
 fn test_runtime_error() {
@@ -347,12 +349,14 @@ fn test_sandbox_allows_string_ops() {
 
 #[test]
 fn test_sandbox_allows_table_ops() {
+    // piccolo's table stdlib has pack/unpack only (no sort/insert)
     let (output, _) = eval_ok(
-        "t = {3, 1, 2}
-         table.sort(t)
+        "t = table.pack(10, 20, 30)
          print(t[1], t[2], t[3])",
     );
-    assert!(output.contains("1"), "table.sort output: {}", output);
+    assert!(output.contains("10"), "table ops output: {}", output);
+    assert!(output.contains("20"), "table ops output: {}", output);
+    assert!(output.contains("30"), "table ops output: {}", output);
 }
 
 // === Complex scripts ===
