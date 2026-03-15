@@ -67,6 +67,7 @@ pub struct SettingsData {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 enum SettingsError {
     Io(std::io::Error),
     Dec(toml::de::Error),
