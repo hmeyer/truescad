@@ -1,5 +1,5 @@
 # truescad
-[![Build Status](https://travis-ci.org/hmeyer/truescad.svg?branch=master)](https://travis-ci.org/hmeyer/truescad)
+[![CI](https://github.com/hmeyer/truescad/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hmeyer/truescad/actions/workflows/ci.yml)
 
 Truescad is a script based CAD program similar to http://www.openscad.org/.
 Similar to http://www.implicitcad.org/ Truescad uses implcit functions to represent geometry and hence offers very precise geometry.
