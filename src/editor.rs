@@ -16,7 +16,7 @@ use truescad_luascad::implicit3d;
 pub struct Editor {
     pub widget: gtk::ScrolledWindow,
     source_view: sourceview4::View,
-    buffer: Option<sourceview4::Buffer>,
+    _buffer: Option<sourceview4::Buffer>,
 }
 
 struct ObjectAdaptor {
@@ -76,7 +76,7 @@ impl Editor {
         let editor = Editor {
             widget,
             source_view: src_view,
-            buffer,
+            _buffer: buffer,
         };
         let editor_clone = editor.clone();
 
