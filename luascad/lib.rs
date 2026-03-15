@@ -11,5 +11,8 @@ pub mod sandbox;
 
 pub use self::luascad::eval;
 
+#[cfg(test)]
+mod tests;
+
 type Float = f64;
 const EPSILON: f64 = std::f64::EPSILON;
