@@ -22,7 +22,7 @@ truescad_luascad = { path = "luascad" }
 kiss3ddeps = { path = "kiss3ddeps" }
 stl_io = "0.11"
 kiss3d = "0.37"
-glib = "0.18"
+glib = "0.20"
 pollster = "0.4"
 
 [dev-dependencies]
