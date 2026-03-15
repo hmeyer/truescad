@@ -9,6 +9,6 @@ name = "truescad_luascad"
 path = "lib.rs"
 
 [dependencies]
-hlua = "0.4"
+piccolo = "0.3"
 implicit3d = "0.16"
 nalgebra = "0.34"
