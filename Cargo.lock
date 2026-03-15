@@ -824,6 +824,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "gc-arena"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3cd70cf88a32937834aae9614ff2569b5d9467fa0c42c5d7762fd94a8de88266"
+dependencies = [
+ "allocator-api2",
+ "gc-arena-derive",
+ "hashbrown 0.14.5",
+ "sptr",
+]
+
+[[package]]
+name = "gc-arena-derive"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c612a69f5557a11046b77a7408d2836fe77077f842171cd211c5ef504bd3cddd"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+ "synstructure",
+]
+
+[[package]]
 name = "gdk"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1275,6 +1299,16 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
+version = "0.14.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
+dependencies = [
+ "ahash",
+ "allocator-api2",
+]
+
+[[package]]
+name = "hashbrown"
 version = "0.15.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
@@ -1320,16 +1354,6 @@ name = "hermit-abi"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
-
-[[package]]
-name = "hlua"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3c03a4912d51870b3ad70456a312f0527debce842f6230096938564bcf13bea"
-dependencies = [
- "libc",
- "lua52-sys",
-]
 
 [[package]]
 name = "image"
@@ -1601,17 +1625,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fae87c125b03c1d2c0150c90365d7d6bcc53fb73a9acaef207d2d065860f062"
 dependencies = [
  "imgref",
-]
-
-[[package]]
-name = "lua52-sys"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2905d3eea022e5a4d8723d95ba261cd366572c9a43e429dfc089088a8c0fe91"
-dependencies = [
- "cc",
- "libc",
- "pkg-config",
 ]
 
 [[package]]
@@ -2235,6 +2248,21 @@ name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
+
+[[package]]
+name = "piccolo"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "003bf52de285e1ff1adcbc6572588db3849988ea660a2d55af3a2ffbc81f597f"
+dependencies = [
+ "ahash",
+ "allocator-api2",
+ "anyhow",
+ "gc-arena",
+ "hashbrown 0.14.5",
+ "rand 0.8.5",
+ "thiserror 1.0.69",
+]
 
 [[package]]
 name = "pin-project"
@@ -2917,6 +2945,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "sptr"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b9b39299b249ad65f3b7e96443bad61c02ca5cd3589f46cb6d610a0fd6c0d6a"
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2959,6 +2993,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "synstructure"
+version = "0.13.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "728a70f3dbaf5bab7f0c4b1ac8d7ae5ea60a4b5549c8a5914361c99147a709d2"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -3191,9 +3236,9 @@ dependencies = [
 name = "truescad_luascad"
 version = "0.6.0"
 dependencies = [
- "hlua",
  "implicit3d",
  "nalgebra",
+ "piccolo",
 ]
 
 [[package]]
