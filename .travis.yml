@@ -1,8 +1,0 @@
-sudo: required
-services:
-  - docker
-language: native
-install:
-  - lsb_release -a
-script:
-  - docker run --rm -it -v "$(pwd)":/usr/src/myapp -w /usr/src/myapp rust:stretch ./ci.sh
