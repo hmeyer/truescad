@@ -2,7 +2,7 @@
 name = "truescad"
 version = "0.8.0"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 dirs = "6.0"

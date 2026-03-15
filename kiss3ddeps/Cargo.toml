@@ -2,7 +2,7 @@
 name = "kiss3ddeps"
 version = "0.2.0"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
-edition = "2021"
+edition = "2024"
 
 [lib]
 name = "kiss3ddeps"
