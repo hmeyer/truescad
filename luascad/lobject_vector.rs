@@ -1,29 +1,22 @@
 use super::Float;
 use hlua;
 use implicit3d::{Intersection, Object, Union};
-use lobject::LObject;
+use crate::lobject::LObject;
 
-// Struct to be used to construct boolean Objects.
-// The lua helpers below pump LObjects from Lua Arrays into this LObjectVector, which is then used
-// to construct the boolean Objects.
 pub struct LObjectVector {
     pub v: Option<Vec<Box<dyn Object<Float>>>>,
 }
 
-// this macro implements the required trait so that we can *push* the object to lua
-// (ie. move it inside lua)
 implement_lua_push!(LObjectVector, |mut metatable| {
-    // we create a `__index` entry in the metatable
     let mut index = metatable.empty_array("__index");
     index.set(
         "push",
-        ::hlua::function2(|v: &mut LObjectVector, o: &mut LObject| {
+        hlua::function2(|v: &mut LObjectVector, o: &mut LObject| {
             v.push(o.as_object());
         }),
     );
 });
 
-// this macro implements the require traits so that we can *read* the object back
 implement_lua_read!(LObjectVector);
 
 impl LObjectVector {

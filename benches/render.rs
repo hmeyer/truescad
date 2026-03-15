@@ -1,7 +1,5 @@
 #[macro_use]
 extern crate bencher;
-extern crate truescad;
-extern crate truescad_luascad;
 use bencher::Bencher;
 
 static TWISTED_CUBE: &str = "
@@ -13,16 +11,16 @@ const YRES: usize = 200;
 const NUM_CHANNELS: usize = 4;
 
 fn render(b: &mut Bencher) {
-    let (_, mut object) = ::truescad_luascad::eval(TWISTED_CUBE).unwrap();
+    let (_, mut object) = truescad_luascad::eval(TWISTED_CUBE).unwrap();
     object
         .as_mut()
         .unwrap()
-        .set_parameters(&::truescad_luascad::implicit3d::PrimitiveParameters {
+        .set_parameters(&truescad_luascad::implicit3d::PrimitiveParameters {
             fade_range: 0.1,
             r_multiplier: 1.0,
         });
 
-    let mut renderer = ::truescad::render::Renderer::new();
+    let mut renderer = truescad::render::Renderer::new();
     renderer.set_object(object);
     let mut buffer = [0u8; XRES * YRES * NUM_CHANNELS];
 

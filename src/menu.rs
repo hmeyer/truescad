@@ -1,6 +1,4 @@
-extern crate gtk;
-
-use gtk::traits::*;
+use gtk::prelude::*;
 
 pub fn create_menu<
     FT: Fn() + 'static,
@@ -20,16 +18,16 @@ pub fn create_menu<
     quit_action: FQ,
 ) -> gtk::MenuBar {
     let menu_bar = gtk::MenuBar::new();
-    let file = gtk::MenuItem::new_with_mnemonic("_File");
+    let file = gtk::MenuItem::with_mnemonic("_File");
     let f_menu = gtk::Menu::new();
-    let f_new = gtk::MenuItem::new_with_mnemonic("_New");
-    let f_open = gtk::MenuItem::new_with_mnemonic("_Open");
-    let f_save = gtk::MenuItem::new_with_mnemonic("_Save");
-    let f_save_as = gtk::MenuItem::new_with_mnemonic("Save _as");
-    let f_tessellate = gtk::MenuItem::new_with_mnemonic("_Tessellate");
-    let f_export_stl = gtk::MenuItem::new_with_mnemonic("_Export STL");
-    let f_settings = gtk::MenuItem::new_with_mnemonic("_Settings");
-    let f_quit = gtk::MenuItem::new_with_mnemonic("_Quit");
+    let f_new = gtk::MenuItem::with_mnemonic("_New");
+    let f_open = gtk::MenuItem::with_mnemonic("_Open");
+    let f_save = gtk::MenuItem::with_mnemonic("_Save");
+    let f_save_as = gtk::MenuItem::with_mnemonic("Save _as");
+    let f_tessellate = gtk::MenuItem::with_mnemonic("_Tessellate");
+    let f_export_stl = gtk::MenuItem::with_mnemonic("_Export STL");
+    let f_settings = gtk::MenuItem::with_mnemonic("_Settings");
+    let f_quit = gtk::MenuItem::with_mnemonic("_Quit");
 
     f_open.connect_activate(move |_| {
         open_action();
@@ -52,9 +50,9 @@ pub fn create_menu<
     f_quit.connect_activate(move |_| {
         quit_action();
     });
-    let help = gtk::MenuItem::new_with_mnemonic("_Help");
+    let help = gtk::MenuItem::with_mnemonic("_Help");
     let h_menu = gtk::Menu::new();
-    let h_about = gtk::MenuItem::new_with_mnemonic("A_bout");
+    let h_about = gtk::MenuItem::with_mnemonic("A_bout");
 
     f_menu.append(&f_new);
     f_menu.append(&f_open);

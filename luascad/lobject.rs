@@ -15,36 +15,30 @@ pub struct LObject {
 pub const INFINITY: Float = 1e10;
 pub const NEG_INFINITY: Float = -1e10;
 
-// this macro implements the required trait so that we can *push* the object to lua
-// (ie. move it inside lua)
 implement_lua_push!(LObject, |mut metatable| {
     {
-        // we create a `__index` entry in the metatable
-        // when the lua code calls `object:translate()`, it will look for `translate` in there
         let mut index = metatable.empty_array("__index");
 
         index.set(
             "translate",
-            ::hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| o.translate(x, y, z)),
+            hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| o.translate(x, y, z)),
         );
         index.set(
             "rotate",
-            ::hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| o.rotate(x, y, z)),
+            hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| o.rotate(x, y, z)),
         );
         index.set(
             "scale",
-            ::hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| o.scale(x, y, z)),
+            hlua::function4(|o: &mut LObject, x: Float, y: Float, z: Float| o.scale(x, y, z)),
         );
-        index.set("clone", ::hlua::function1(|o: &mut LObject| o.clone()));
+        index.set("clone", hlua::function1(|o: &mut LObject| o.clone()));
     }
-    // Add __tostring metamethod for printing LObjects.
     metatable.set(
         "__tostring",
-        ::hlua::function1(|o: &mut LObject| format!("{:#?}", o)),
+        hlua::function1(|o: &mut LObject| format!("{:#?}", o)),
     );
 });
 
-// this macro implements the require traits so that we can *read* the object back
 implement_lua_read!(LObject);
 
 impl LObject {

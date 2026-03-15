@@ -1,15 +1,14 @@
 use super::Float;
 use cairo::{Context, Format, ImageSurface};
-use gtk::traits::*;
+use gtk::prelude::*;
 use gtk::DrawingArea;
-use gtk::Inhibit;
-use render;
+use crate::render;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 pub struct ObjectWidget {
     pub drawing_area: DrawingArea,
-    pub renderer: Rc<RefCell<::render::Renderer>>,
+    pub renderer: Rc<RefCell<render::Renderer>>,
     mouse_pos: Rc<Cell<(f64, f64)>>,
 }
 
@@ -24,56 +23,54 @@ impl ObjectWidget {
             let renderer_clone = xw.renderer.clone();
             xw.drawing_area
                 .connect_draw(move |_: &DrawingArea, cr: &Context| {
-                    let (clip_x1, clip_y1, clip_x2, clip_y2) = cr.clip_extents();
+                    let (clip_x1, clip_y1, clip_x2, clip_y2) = cr.clip_extents().unwrap();
                     let (width, height) = (clip_x2 - clip_x1, clip_y2 - clip_y1);
                     let image = draw_on_image(&renderer_clone, width as i32, height as i32);
-                    cr.set_source_surface(&image, 0., 0.);
-                    cr.paint();
-                    Inhibit(false)
+                    cr.set_source_surface(&image, 0., 0.).unwrap();
+                    cr.paint().unwrap();
+                    glib::Propagation::Proceed
                 });
         }
         xw.drawing_area
-            .add_events(::gdk::ModifierType::BUTTON1_MASK.bits() as i32);
+            .add_events(gdk::EventMask::BUTTON1_MOTION_MASK);
         xw.drawing_area
-            .add_events(::gdk::ModifierType::BUTTON2_MASK.bits() as i32);
+            .add_events(gdk::EventMask::BUTTON3_MOTION_MASK);
         xw.drawing_area
-            .add_events(::gdk::ModifierType::BUTTON3_MASK.bits() as i32);
-        xw.drawing_area.add_events(1 << 4);
+            .add_events(gdk::EventMask::BUTTON_PRESS_MASK);
 
         {
             let mouse_pos_clone = xw.mouse_pos.clone();
             let renderer_clone = xw.renderer.clone();
             xw.drawing_area.connect_motion_notify_event(
-                move |da: &DrawingArea, em: &::gdk::EventMotion| -> Inhibit {
-                    let da_alloc = da.get_allocation();
-                    let (nx, ny) = em.get_position();
+                move |da: &DrawingArea, em: &gdk::EventMotion| -> glib::Propagation {
+                    let da_alloc = da.allocation();
+                    let (nx, ny) = em.position();
                     let (ox, oy) = mouse_pos_clone.get();
                     let (dx, dy) = (
-                        ((nx - ox) / f64::from(da_alloc.width)) as Float,
-                        ((ny - oy) / f64::from(da_alloc.height)) as Float,
+                        ((nx - ox) / f64::from(da_alloc.width())) as Float,
+                        ((ny - oy) / f64::from(da_alloc.height())) as Float,
                     );
-                    mouse_pos_clone.set(em.get_position());
-                    match em.get_state() {
-                        x if ::gdk::ModifierType::BUTTON1_MASK.intersects(x) => {
-                            renderer_clone.borrow_mut().rotate_from_screen(dx, dy);
-                            da.queue_draw();
-                        }
-                        x if ::gdk::ModifierType::BUTTON3_MASK.intersects(x) => {
-                            renderer_clone.borrow_mut().translate_from_screen(dx, dy);
-                            da.queue_draw();
-                        }
-                        _ => println!("unkown {:?}: {:?} {:?}", em.get_state(), dx, dy),
+                    mouse_pos_clone.set(em.position());
+                    let state = em.state();
+                    if state.contains(gdk::ModifierType::BUTTON1_MASK) {
+                        renderer_clone.borrow_mut().rotate_from_screen(dx, dy);
+                        da.queue_draw();
+                    } else if state.contains(gdk::ModifierType::BUTTON3_MASK) {
+                        renderer_clone.borrow_mut().translate_from_screen(dx, dy);
+                        da.queue_draw();
+                    } else {
+                        println!("unknown {:?}: {:?} {:?}", state, dx, dy);
                     }
-                    Inhibit(false)
+                    glib::Propagation::Proceed
                 },
             );
         }
         {
             let mouse_pos_clone = xw.mouse_pos.clone();
             xw.drawing_area.connect_button_press_event(
-                move |_: &DrawingArea, eb: &::gdk::EventButton| -> Inhibit {
-                    mouse_pos_clone.set(eb.get_position());
-                    Inhibit(false)
+                move |_: &DrawingArea, eb: &gdk::EventButton| -> glib::Propagation {
+                    mouse_pos_clone.set(eb.position());
+                    glib::Propagation::Proceed
                 },
             );
         }
