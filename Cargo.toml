@@ -1,36 +1,33 @@
 [package]
 name = "truescad"
-version = "0.7.2"
+version = "0.8.0"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
+edition = "2024"
 
 [dependencies]
-dirs = "1.0"
-sourceview = "^0"
-gdk = "^0"
-cairo-rs = "^0"
-nalgebra = "0.16"
-alga = "0.7"
-rayon = "1.0"
-serde = "1.0"
-serde_derive = "1.0"
-toml = "0.4"
+dirs = "6.0"
+sourceview4 = "0.5"
+gdk = "0.18"
+cairo-rs = "0.18"
+nalgebra = "0.34"
+rayon = "1.11"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
 num-traits = "0.2"
-tessellation = "0.7"
+tessellation = "0.9"
 truescad_luascad = { path = "luascad" }
 kiss3ddeps = { path = "kiss3ddeps" }
-stl_io = "0.3"
-kiss3d = "0.13"
+stl_io = "0.11"
+kiss3d = "0.37"
+glib = "0.18"
+pollster = "0.4"
 
 [dev-dependencies]
-bencher = "0.1.*"
-
-[features]
-gtk_3_10 = ["gtk/v3_10"]
-gtk_3_16 = ["gtk_3_10", "gtk/v3_16"]
+bencher = "0.1"
 
 [dependencies.gtk]
-version = "0.5"
-features = ["v3_16"]
+version = "0.18"
+features = ["v3_24"]
 
 # [profile.release]
 # lto = true

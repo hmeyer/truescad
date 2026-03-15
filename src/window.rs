@@ -1,9 +1,9 @@
-use editor;
-use gtk::traits::*;
-use gtk::{FileChooserAction, FileChooserDialog, FileFilter, Inhibit, ResponseType};
-use menu;
-use object_widget;
-use settings;
+use crate::editor;
+use gtk::prelude::*;
+use gtk::{FileChooserAction, FileChooserDialog, FileFilter, ResponseType};
+use crate::menu;
+use crate::object_widget;
+use crate::settings;
 use std::cell::RefCell;
 use std::fs::OpenOptions;
 use std::rc::Rc;
@@ -24,26 +24,26 @@ macro_rules! clone {
     );
 }
 
-pub fn create_window() -> ::gtk::Window {
-    let window = ::gtk::Window::new(::gtk::WindowType::Toplevel);
+pub fn create_window() -> gtk::Window {
+    let window = gtk::Window::new(gtk::WindowType::Toplevel);
 
     window.set_default_size(640, 480);
 
     window.connect_delete_event(|_, _| {
-        ::gtk::main_quit();
-        Inhibit(false)
+        gtk::main_quit();
+        glib::Propagation::Proceed
     });
 
-    let v_box = ::gtk::Box::new(::gtk::Orientation::Vertical, 0);
-    let debug_scrolled_window = ::gtk::ScrolledWindow::new(None, None);
-    let debug_view = ::gtk::TextView::new();
+    let v_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    let debug_scrolled_window = gtk::ScrolledWindow::new(gtk::Adjustment::NONE, gtk::Adjustment::NONE);
+    let debug_view = gtk::TextView::new();
     debug_view.set_editable(false);
     debug_scrolled_window.add(&debug_view);
-    debug_view.set_wrap_mode(::gtk::WrapMode::WordChar);
+    debug_view.set_wrap_mode(gtk::WrapMode::WordChar);
     let xw = object_widget::ObjectWidget::new();
-    let debug_text = debug_view.get_buffer().unwrap();
+    let debug_text = debug_view.buffer().unwrap();
     let editor = editor::Editor::new(&xw, &debug_text);
-    let h_pane = ::gtk::Paned::new(::gtk::Orientation::Horizontal);
+    let h_pane = gtk::Paned::new(gtk::Orientation::Horizontal);
     h_pane.add2(&xw.drawing_area);
     h_pane.add1(&editor.widget);
 
@@ -88,10 +88,10 @@ pub fn create_window() -> ::gtk::Window {
                                                   "*.stl") {
                     let stl_mesh = mesh.faces.iter().enumerate().map(|(i, f)| {
                         let normal = mesh.normal32(i);
-                        ::stl_io::Triangle{ normal:[normal[0], normal[1], normal[2]],
-                            vertices: [mesh.vertex32(f[0]),
-                             mesh.vertex32(f[1]),
-                             mesh.vertex32(f[2])]}
+                        stl_io::Triangle{ normal: stl_io::Normal::new([normal[0], normal[1], normal[2]]),
+                            vertices: [stl_io::Vertex::new(mesh.vertex32(f[0])),
+                             stl_io::Vertex::new(mesh.vertex32(f[1])),
+                             stl_io::Vertex::new(mesh.vertex32(f[2]))]}
                     }).collect::<Vec<_>>();
                     match OpenOptions::new()
                         .write(true)
@@ -106,10 +106,10 @@ pub fn create_window() -> ::gtk::Window {
                 }
             }
         }),
-        ::gtk::main_quit,
+        gtk::main_quit,
     );
 
-    let v_pane = ::gtk::Paned::new(::gtk::Orientation::Vertical);
+    let v_pane = gtk::Paned::new(gtk::Orientation::Vertical);
     v_pane.set_border_width(5);
     v_pane.add1(&h_pane);
     v_pane.add2(&debug_scrolled_window);
@@ -120,24 +120,24 @@ pub fn create_window() -> ::gtk::Window {
     window.add(&v_box);
     window.show_all();
 
-    v_pane.set_position(v_pane.get_allocated_height() * 80 / 100);
-    h_pane.set_position(h_pane.get_allocated_width() * 50 / 100);
+    v_pane.set_position(v_pane.allocated_height() * 80 / 100);
+    h_pane.set_position(h_pane.allocated_width() * 50 / 100);
 
     window
 }
 
-fn get_open_name<T: ::gtk::IsA<::gtk::Window>>(parent: Option<&T>) -> Option<String> {
+fn get_open_name<T: gtk::prelude::IsA<gtk::Window>>(parent: Option<&T>) -> Option<String> {
     let dialog = FileChooserDialog::new(Some("Choose a file"), parent, FileChooserAction::Open);
-    dialog.add_button("Open", ResponseType::Ok.into());
-    dialog.add_button("Cancel", ResponseType::Cancel.into());
+    dialog.add_button("Open", ResponseType::Ok);
+    dialog.add_button("Cancel", ResponseType::Cancel);
     dialog.set_select_multiple(false);
     let filter = FileFilter::new();
     filter.add_pattern("*.lua");
-    dialog.add_filter(&filter);
+    dialog.add_filter(filter);
     let res = dialog.run();
-    let maybe_filename = dialog.get_filename();
-    dialog.destroy();
-    if res == ::gtk::ResponseType::Ok.into() {
+    let maybe_filename = dialog.filename();
+    dialog.close();
+    if res == ResponseType::Ok {
         if let Some(path) = maybe_filename {
             if let Some(path_str) = path.to_str() {
                 return Some(path_str.to_string());
@@ -147,7 +147,7 @@ fn get_open_name<T: ::gtk::IsA<::gtk::Window>>(parent: Option<&T>) -> Option<Str
     None
 }
 
-fn get_save_name<T: ::gtk::IsA<::gtk::Window>>(
+fn get_save_name<T: gtk::prelude::IsA<gtk::Window>>(
     parent: Option<&T>,
     pattern: &str,
 ) -> Option<String> {
@@ -156,15 +156,15 @@ fn get_save_name<T: ::gtk::IsA<::gtk::Window>>(
         parent,
         FileChooserAction::Save,
     );
-    dialog.add_button("Save", ResponseType::Ok.into());
-    dialog.add_button("Cancel", ResponseType::Cancel.into());
+    dialog.add_button("Save", ResponseType::Ok);
+    dialog.add_button("Cancel", ResponseType::Cancel);
     let filter = FileFilter::new();
     filter.add_pattern(pattern);
-    dialog.add_filter(&filter);
+    dialog.add_filter(filter);
     let res = dialog.run();
-    let maybe_filename = dialog.get_filename();
-    dialog.destroy();
-    if res == ::gtk::ResponseType::Ok.into() {
+    let maybe_filename = dialog.filename();
+    dialog.close();
+    if res == ResponseType::Ok {
         if let Some(path) = maybe_filename {
             if let Some(path_str) = path.to_str() {
                 return Some(path_str.to_string());

@@ -1,8 +1,3 @@
-// pub use primitive::{Sphere};
-
-// pub type Ray = ray::Ray3<float>;
-// pub type Point = Point<float>;
-
 use super::Float;
 use nalgebra as na;
 use rayon::prelude::*;
@@ -56,7 +51,7 @@ impl Renderer {
     }
 
     pub fn rotate_from_screen(&mut self, x: Float, y: Float) {
-        let euler = ::na::Rotation::from_euler_angles(y, x, 0.).to_homogeneous();
+        let euler = na::Rotation3::from_euler_angles(y, x, 0.).to_homogeneous();
         self.trans *= euler;
     }
 
