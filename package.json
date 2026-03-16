@@ -1,0 +1,17 @@
+{
+  "name": "truescad-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:release": "node build.mjs --release"
+  },
+  "devDependencies": {
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/legacy-modes": "^6.0.0",
+    "@codemirror/theme-one-dark": "^6.0.0",
+    "codemirror": "^6.0.0",
+    "esbuild": "^0.24.0",
+    "three": "^0.170.0"
+  }
+}

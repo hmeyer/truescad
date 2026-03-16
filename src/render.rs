@@ -136,6 +136,7 @@ impl Renderer {
                     index += 1;
                     row_buf[index] = b;
                     index += 1;
+                    row_buf[index] = 255;
                     index += 1;
                 }
             })
