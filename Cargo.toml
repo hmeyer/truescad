@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "luascad", "kiss3ddeps"]
+members = [".", "kiss3ddeps"]
 
 [package]
 name = "truescad"
@@ -12,13 +12,14 @@ dirs = "6.0"
 sourceview4 = "0.5"
 gdk = "0.18"
 cairo-rs = "0.18"
+implicit3d = "0.16"
 nalgebra = "0.34"
+piccolo = "0.3"
 rayon = "1.11"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8"
 num-traits = "0.2"
 tessellation = "0.9"
-truescad_luascad = { path = "luascad" }
 kiss3ddeps = { path = "kiss3ddeps" }
 stl_io = "0.11"
 kiss3d = "0.37"

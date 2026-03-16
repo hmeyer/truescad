@@ -1,6 +1,6 @@
+use implicit3d::Object;
 use nalgebra as na;
-use truescad_luascad::eval;
-use truescad_luascad::implicit3d::Object;
+use truescad::eval;
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 

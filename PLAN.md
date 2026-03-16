@@ -32,7 +32,7 @@ The GTK desktop app is being abandoned in favor of a web-first approach.
 | `src/main.rs` | Replace with `wasm-bindgen` entry point |
 | Root `Cargo.toml` | Remove gtk/sourceview4/gdk/glib/cairo-rs/kiss3d/rayon/dirs/pollster; add `wasm-bindgen`, `web-sys` |
 | `kiss3ddeps/` | Delete (only existed for kiss3d) |
-| `luascad/` | Keep as-is (piccolo — WASM-ready) |
+| `luascad/` | Deleted — folded into `src/luascad.rs` |
 
 ## Frontend layout
 
@@ -56,6 +56,7 @@ node_modules/    ← CM6 (dev only, bundled by esbuild)
 ## Status
 
 - [x] piccolo migration complete (`luascad` uses piccolo 0.3, no native C deps)
+- [x] `luascad` subcrate folded into `src/luascad.rs` (workspace simplified)
 - [ ] Phase 1: Strip root crate
 - [ ] Phase 2: wasm-bindgen API
 - [ ] Phase 3: Verify WASM builds
