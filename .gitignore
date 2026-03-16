@@ -8,3 +8,6 @@
 *~
 *.bk
 _*.stl
+pkg/
+node_modules/
+dist/

@@ -1,6 +1,5 @@
 use super::Float;
 use nalgebra as na;
-use rayon::prelude::*;
 use std::cmp;
 use implicit3d::Object;
 
@@ -117,7 +116,7 @@ impl Renderer {
             let origin_value = my_obj.approx_value(&ray.origin, self.approx_slack);
 
             let mut rows: Vec<_> = buf.chunks_mut((width * 4) as usize).enumerate().collect();
-            rows.par_iter_mut().for_each(|y_and_buf| {
+            rows.iter_mut().for_each(|y_and_buf| {
                 let y = y_and_buf.0 as i32;
                 let row_buf = &mut y_and_buf.1;
                 let dir_row = dir_front + dir_tb * (Float::from(y - h2) * scale);
@@ -137,6 +136,7 @@ impl Renderer {
                     index += 1;
                     row_buf[index] = b;
                     index += 1;
+                    row_buf[index] = 255;
                     index += 1;
                 }
             })

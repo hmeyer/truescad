@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrueScad</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <header>
+    <span class="app-title">TrueScad</span>
+    <button id="btn-run">&#9654; Run</button>
+    <button id="btn-mesh">&#11041; Mesh</button>
+    <button id="btn-export">&#8659; Export STL</button>
+  </header>
+
+  <main>
+    <div id="editor-pane"></div>
+
+    <div id="view-pane">
+      <div id="view-tabs">
+        <button id="tab-preview" class="tab active">Preview</button>
+        <button id="tab-mesh" class="tab">Mesh</button>
+      </div>
+      <div id="canvas-area">
+        <canvas id="preview-canvas"></canvas>
+        <canvas id="mesh-canvas" hidden></canvas>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <pre id="log">Ready. Press Run to evaluate the script.</pre>
+  </footer>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
