@@ -1,5 +1,4 @@
 **/target/
-**/Cargo.lock
 ./xplicit.stl
 ./xplicit.scad
 *.stl
