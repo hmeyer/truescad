@@ -92,7 +92,7 @@ node_modules/    ← CM6 + Three.js (dev only, bundled by esbuild)
 
 - [x] piccolo migration complete (`luascad` uses piccolo 0.3, no native C deps)
 - [x] `luascad` subcrate folded into `src/luascad.rs` (workspace simplified)
-- [ ] Phase 1: Strip root crate
+- [x] Phase 1: Strip root crate
 - [ ] Phase 2: wasm-bindgen API
 - [ ] Phase 3: Verify WASM builds
 - [ ] Phase 4: Frontend scaffold
