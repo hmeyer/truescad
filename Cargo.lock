@@ -3218,10 +3218,12 @@ dependencies = [
  "gdk",
  "glib",
  "gtk",
+ "implicit3d",
  "kiss3d",
  "kiss3ddeps",
  "nalgebra",
  "num-traits",
+ "piccolo",
  "pollster",
  "rayon",
  "serde",
@@ -3229,16 +3231,6 @@ dependencies = [
  "stl_io",
  "tessellation",
  "toml",
- "truescad_luascad",
-]
-
-[[package]]
-name = "truescad_luascad"
-version = "0.6.0"
-dependencies = [
- "implicit3d",
- "nalgebra",
- "piccolo",
 ]
 
 [[package]]

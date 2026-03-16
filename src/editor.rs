@@ -9,8 +9,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::{BufReader, BufWriter};
 use tessellation::{ImplicitFunction, ManifoldDualContouring, Mesh};
-use truescad_luascad;
-use truescad_luascad::implicit3d;
+use implicit3d;
 
 #[derive(Clone)]
 pub struct Editor {
@@ -104,7 +103,7 @@ impl Editor {
                 true,
             )
             .unwrap();
-        match truescad_luascad::eval(&code_text) {
+        match crate::eval(&code_text) {
             Ok((print_result, maybe_object)) => {
                 writeln!(msg, "{}", print_result).unwrap();
                 match maybe_object {

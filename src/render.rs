@@ -2,7 +2,7 @@ use super::Float;
 use nalgebra as na;
 use rayon::prelude::*;
 use std::cmp;
-use truescad_luascad::implicit3d::Object;
+use implicit3d::Object;
 
 const EPSILON: Float = 0.003;
 const APPROX_SLACK: Float = 0.1;
