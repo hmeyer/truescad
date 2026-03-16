@@ -1,5 +1,8 @@
 # truescad
 [![CI](https://github.com/hmeyer/truescad/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hmeyer/truescad/actions/workflows/ci.yml)
+[![Deploy](https://github.com/hmeyer/truescad/actions/workflows/deploy.yml/badge.svg?branch=main)](https://hmeyer.github.io/truescad/)
+
+**[▶ Open TrueScad in your browser](https://hmeyer.github.io/truescad/)**
 
 TrueScad is a Lua-scripted CAD tool similar to [OpenSCAD](http://www.openscad.org/), running entirely in the browser as a WebAssembly app. Like [ImplicitCAD](http://www.implicitcad.org/), it uses implicit functions to represent geometry, offering precise surfaces and smooth rounded CSG.
 

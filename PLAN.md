@@ -96,5 +96,5 @@ node_modules/    ← CM6 + Three.js (dev only, bundled by esbuild)
 - [x] Phase 2: wasm-bindgen API
 - [x] Phase 3: Verify WASM builds
 - [x] Phase 4: Frontend scaffold
-- [ ] Phase 5: Wire JS ↔ WASM
-- [ ] Phase 6: GitHub Actions + GitHub Pages
+- [x] Phase 5: Wire JS ↔ WASM
+- [x] Phase 6: GitHub Actions + GitHub Pages
