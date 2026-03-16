@@ -33,7 +33,7 @@ thread_local! {
 
 /// Evaluate a Lua script. Returns a JS object `{output: string, error: string|null}`.
 #[wasm_bindgen]
-pub fn eval(code: &str) -> JsValue {
+pub fn run_script(code: &str) -> JsValue {
     match luascad::eval(code) {
         Ok((output, maybe_obj)) => {
             STATE.with(|s| {

@@ -5,7 +5,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import * as THREE from "three";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import init, { eval as wasmEval, render, rotate, pan, tessellate } from "./truescad.js";
+import init, { run_script, render, rotate, pan, tessellate } from "./truescad.js";
 
 const INITIAL_SCRIPT =
 `cube = Box(1, 1, 1, 0.3)
@@ -87,7 +87,7 @@ async function main() {
   // ── Run ──────────────────────────────────────────────────────────────────
 
   document.getElementById("btn-run").addEventListener("click", () => {
-    const result = wasmEval(editor.state.doc.toString());
+    const result = run_script(editor.state.doc.toString());
     if (result.error) {
       setLog(result.error, true);
     } else {
