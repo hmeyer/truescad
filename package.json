@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "build:release": "node build.mjs --release"
+    "build:release": "node build.mjs --release",
+    "serve": "node serve.mjs"
   },
   "devDependencies": {
     "@codemirror/language": "^6.0.0",
