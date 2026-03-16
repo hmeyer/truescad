@@ -94,7 +94,7 @@ node_modules/    ← CM6 + Three.js (dev only, bundled by esbuild)
 - [x] `luascad` subcrate folded into `src/luascad.rs` (workspace simplified)
 - [x] Phase 1: Strip root crate
 - [x] Phase 2: wasm-bindgen API
-- [ ] Phase 3: Verify WASM builds
+- [x] Phase 3: Verify WASM builds
 - [ ] Phase 4: Frontend scaffold
 - [ ] Phase 5: Wire JS ↔ WASM
 - [ ] Phase 6: GitHub Actions + GitHub Pages
