@@ -5,12 +5,13 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import * as THREE from "three";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import init, { run_script, render, rotate, pan, tessellate } from "./truescad.js";
+import init, { run_script, get_shader_source, get_world_transform, get_object_width,
+               rotate, pan, tessellate } from "./truescad.js";
 
 const INITIAL_SCRIPT =
-`cube = Box(1, 1, 1, 0.3)
-sphere = Sphere(0.5)
-result = Difference({cube, sphere}, 0.3)
+`cube = Box(1, 1, 1, 0.02)
+sphere = Sphere(0.45)
+result = Difference({cube, sphere}, 0.02)
 result = result:scale(15, 15, 15)
 build(result)
 `;
@@ -26,42 +27,120 @@ async function main() {
     parent: document.getElementById("editor-pane"),
   });
 
-  // ── Ray-march preview canvas ─────────────────────────────────────────────
+  // ── WebGL2 preview canvas ────────────────────────────────────────────────
 
   const previewCanvas = document.getElementById("preview-canvas");
-  const previewCtx = previewCanvas.getContext("2d");
+  const gl = previewCanvas.getContext("webgl2", { preserveDrawingBuffer: true });
 
-  function syncSize(canvas) {
-    const r = canvas.getBoundingClientRect();
-    canvas.width  = Math.round(r.width);
-    canvas.height = Math.round(r.height);
+  if (!gl) {
+    document.getElementById("log").textContent =
+      "WebGL2 not available in this browser.";
+    document.getElementById("log").className = "error";
   }
 
-  function doRender() {
-    syncSize(previewCanvas);
-    const w = previewCanvas.width;
-    const h = previewCanvas.height;
-    if (w === 0 || h === 0) return;
-    const pixels = render(w, h);
-    previewCtx.putImageData(new ImageData(pixels, w, h), 0, 0);
+  // Full-screen quad (two triangles covering clip space)
+  const quadVerts = new Float32Array([-1, -1,  1, -1, -1, 1,  -1, 1,  1, -1,  1, 1]);
+  const quadBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, quadVerts, gl.STATIC_DRAW);
+
+  const VERT_SRC = `#version 300 es
+in vec2 aPos;
+void main() { gl_Position = vec4(aPos, 0.0, 1.0); }`;
+
+  let glProgram = null;
+  let uResolution, uTransform, uCameraZ;
+  let rafId = null;
+
+  function compileProgram(fragSrc) {
+    function makeShader(type, src) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+        throw new Error("Shader compile error:\n" + gl.getShaderInfoLog(s));
+      return s;
+    }
+    const prog = gl.createProgram();
+    gl.attachShader(prog, makeShader(gl.VERTEX_SHADER, VERT_SRC));
+    gl.attachShader(prog, makeShader(gl.FRAGMENT_SHADER, fragSrc));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
+      throw new Error("Program link error:\n" + gl.getProgramInfoLog(prog));
+    return prog;
+  }
+
+  function startRenderLoop() {
+    if (rafId) cancelAnimationFrame(rafId);
+    function frame() {
+      const w = previewCanvas.clientWidth;
+      const h = previewCanvas.clientHeight;
+      if (previewCanvas.width !== w || previewCanvas.height !== h) {
+        previewCanvas.width  = w;
+        previewCanvas.height = h;
+        gl.viewport(0, 0, w, h);
+      }
+      gl.useProgram(glProgram);
+
+      const aPos = gl.getAttribLocation(glProgram, "aPos");
+      gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+      gl.uniform2f(uResolution, previewCanvas.width, previewCanvas.height);
+      gl.uniformMatrix4fv(uTransform, false, get_world_transform());
+      // Camera Z: place camera at 2.5× the object half-width
+      const cameraZ = get_object_width() * 2.5;
+      gl.uniform1f(uCameraZ, cameraZ);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      rafId = requestAnimationFrame(frame);
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function onNewObject() {
+    const src = get_shader_source();
+    if (!src || !gl) return;
+
+    if (glProgram) gl.deleteProgram(glProgram);
+    try {
+      // WebGL2 fragment shaders need a version header and out variable
+      const fragSrc = `#version 300 es\nprecision highp float;\nout vec4 fragColor;\n` +
+        src.replace("gl_FragColor", "fragColor");
+      glProgram = compileProgram(fragSrc);
+    } catch (e) {
+      console.error(e);
+      setLog("Shader compile error: " + e.message, true);
+      return;
+    }
+    gl.useProgram(glProgram);
+    uResolution = gl.getUniformLocation(glProgram, "iResolution");
+    uTransform  = gl.getUniformLocation(glProgram, "iWorldTransform");
+    uCameraZ    = gl.getUniformLocation(glProgram, "iCameraZ");
+
+    startRenderLoop();
   }
 
   // ── Three.js mesh canvas ─────────────────────────────────────────────────
 
   const meshCanvas = document.getElementById("mesh-canvas");
-  let three = null; // lazily initialised
+  let three = null;
 
   function initThree() {
     if (three) return;
-    syncSize(meshCanvas);
+    const w = meshCanvas.clientWidth  || 400;
+    const h = meshCanvas.clientHeight || 400;
+    meshCanvas.width  = w;
+    meshCanvas.height = h;
     const renderer = new THREE.WebGLRenderer({ canvas: meshCanvas, antialias: true });
-    renderer.setSize(meshCanvas.width, meshCanvas.height, false);
+    renderer.setSize(w, h, false);
     renderer.setPixelRatio(window.devicePixelRatio);
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1a1a1a);
 
-    const camera = new THREE.PerspectiveCamera(45, meshCanvas.width / meshCanvas.height, 0.001, 10000);
+    const camera = new THREE.PerspectiveCamera(45, w / h, 0.001, 10000);
     camera.position.set(0, 0, 5);
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.5));
@@ -92,7 +171,7 @@ async function main() {
       setLog(result.error, true);
     } else {
       setLog(result.output);
-      doRender();
+      onNewObject();
     }
   });
 
@@ -103,6 +182,7 @@ async function main() {
     meshCanvas.hidden = true;
     document.getElementById("tab-preview").classList.add("active");
     document.getElementById("tab-mesh").classList.remove("active");
+    if (rafId === null && glProgram) startRenderLoop();
   });
 
   document.getElementById("tab-mesh").addEventListener("click", () => {
@@ -110,6 +190,8 @@ async function main() {
     meshCanvas.hidden = false;
     document.getElementById("tab-preview").classList.remove("active");
     document.getElementById("tab-mesh").classList.add("active");
+    // Pause rAF loop while mesh tab is visible
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     if (three) three.renderer.render(three.scene, three.camera);
   });
 
@@ -120,8 +202,8 @@ async function main() {
     if (!stlBytes) { setLog("No object — run the script first.", true); return; }
 
     initThree();
-
     if (three.mesh) three.scene.remove(three.mesh);
+
     const geometry = new STLLoader().parse(stlBytes.buffer);
     geometry.computeVertexNormals();
     three.mesh = new THREE.Mesh(
@@ -130,7 +212,6 @@ async function main() {
     );
     three.scene.add(three.mesh);
 
-    // Auto-fit camera to the mesh.
     const box    = new THREE.Box3().setFromObject(three.mesh);
     const center = box.getCenter(new THREE.Vector3());
     const size   = box.getSize(new THREE.Vector3()).length();
@@ -151,7 +232,6 @@ async function main() {
   document.getElementById("btn-export").addEventListener("click", () => {
     const stlBytes = tessellate();
     if (!stlBytes) { setLog("No object — run the script first.", true); return; }
-
     const url = URL.createObjectURL(new Blob([stlBytes], { type: "application/octet-stream" }));
     const a = Object.assign(document.createElement("a"), { href: url, download: "model.stl" });
     document.body.appendChild(a);
@@ -177,7 +257,7 @@ async function main() {
     drag.y = e.clientY;
     if (drag.button === 0) rotate(dx, dy);
     else pan(dx, dy);
-    doRender();
+    // rAF loop picks up the new transform on the next frame automatically
   });
 
   window.addEventListener("mouseup", () => { drag = null; });

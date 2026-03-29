@@ -98,6 +98,8 @@ try {
     () => document.getElementById("log").textContent !== "Ready. Press Run to evaluate the script.",
     { timeout: 15000 }
   );
+  // Let rAF fire so the WebGL canvas renders at least one frame
+  await page.waitForTimeout(500);
 
   // Read log output
   const logText = await page.$eval("#log", el => el.textContent);
@@ -110,6 +112,27 @@ try {
     passed = false;
   } else {
     console.log("  OK: script ran without error");
+  }
+
+  // Check that the WebGL canvas has rendered a non-background pixel at the center
+  console.log("── Check pixel ──");
+  const pixel = await page.evaluate(() => {
+    const canvas = document.getElementById("preview-canvas");
+    const gl = canvas.getContext("webgl2");
+    const cx = canvas.width  >> 1;
+    const cy = canvas.height >> 1;
+    const buf = new Uint8Array(4);
+    gl.readPixels(cx, cy, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+    return Array.from(buf);
+  });
+  const BACKGROUND = [31, 31, 31, 255]; // vec3(0.12) before gamma
+  const isBackground = pixel.every((v, i) => Math.abs(v - BACKGROUND[i]) <= 4);
+  console.log(`  center pixel: rgba(${pixel.join(",")})`);
+  if (isBackground) {
+    console.error("  FAIL: canvas center is background color — nothing rendered");
+    passed = false;
+  } else {
+    console.log("  OK: non-background pixel rendered");
   }
 
   // Check for JS errors in console

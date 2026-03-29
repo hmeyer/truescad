@@ -5,28 +5,27 @@ use piccolo::{
     UserData, Value,
 };
 
-use implicit3d::{
-    BoundingBox, Bender, Cone, Cylinder, Intersection, Mesh, NormalPlane, Object, PlaneNegX,
-    PlaneNegY, PlaneNegZ, PlaneX, PlaneY, PlaneZ, Sphere, Twister, Union,
+use crate::primitive::Primitive;
+use crate::primitives::{
+    Bender, Difference, InfCone, InfCylinder, Intersection, NormalPlane, PlaneNegX, PlaneNegY,
+    PlaneNegZ, PlaneX, PlaneY, PlaneZ, Rotate, Scale, Sphere, Translate, Twister, Union,
 };
-use nalgebra as na;
 
-use crate::{Float, EPSILON};
+const EPSILON: f64 = f64::EPSILON;
 
-pub type EvalResult = Result<(String, Option<Box<dyn Object<Float>>>), piccolo::StaticError>;
+pub type EvalResult = Result<(String, Option<Box<dyn Primitive>>), piccolo::StaticError>;
 
-/// Lua-visible wrapper around an implicit3d object.
-pub struct LObject(pub Option<Box<dyn Object<Float>>>);
+/// Lua-visible wrapper around a Primitive.
+pub struct LObject(pub Option<Box<dyn Primitive>>);
 
 impl LObject {
-    fn as_object(&self) -> Option<Box<dyn Object<Float>>> {
+    fn as_primitive(&self) -> Option<Box<dyn Primitive>> {
         self.0.as_ref().map(|o| o.clone_box())
     }
 }
 
 // ── internal helpers ──────────────────────────────────────────────────────────
 
-/// Wrap an LObject as piccolo static UserData and attach the shared methods metatable.
 fn wrap_object(ctx: Context<'_>, obj: LObject) -> Value<'_> {
     let ud = UserData::new_static(&ctx, obj);
     if let Value::Table(mt) = ctx.get_global("__lobj_mt") {
@@ -35,11 +34,10 @@ fn wrap_object(ctx: Context<'_>, obj: LObject) -> Value<'_> {
     ud.into()
 }
 
-/// Read an integer-keyed Lua array table and collect implicit3d objects out of it.
 fn objects_from_table<'gc>(
     ctx: Context<'gc>,
     table: Table<'gc>,
-) -> Result<Vec<Box<dyn Object<Float>>>, piccolo::Error<'gc>> {
+) -> Result<Vec<Box<dyn Primitive>>, piccolo::Error<'gc>> {
     let mut objects = Vec::new();
     let len = table.length() as usize;
     for i in 1..=len {
@@ -51,9 +49,7 @@ fn objects_from_table<'gc>(
                     .map_err(|_| "expected LObject in list".into_value(ctx))?;
                 match &obj.0 {
                     Some(o) => objects.push(o.clone_box()),
-                    None => {
-                        return Err("nil object in list".into_value(ctx).into());
-                    }
+                    None => return Err("nil object in list".into_value(ctx).into()),
                 }
             }
             _ => return Err("expected LObject in list".into_value(ctx).into()),
@@ -64,7 +60,6 @@ fn objects_from_table<'gc>(
 
 // ── setup functions ───────────────────────────────────────────────────────────
 
-/// Register a shared `__lobj_mt` metatable that provides :translate/:rotate/:scale/:clone.
 fn setup_methods_metatable(ctx: Context<'_>) {
     let methods = Table::new(&ctx);
 
@@ -74,9 +69,12 @@ fn setup_methods_metatable(ctx: Context<'_>) {
             "translate",
             Callback::from_fn(&ctx, |ctx, _, mut stack| {
                 let ud: UserData = stack.from_front(ctx)?;
-                let (x, y, z): (Float, Float, Float) = stack.consume(ctx)?;
+                let (x, y, z): (f64, f64, f64) = stack.consume(ctx)?;
                 let obj = ud.downcast_static::<LObject>()?;
-                let new_obj = LObject(obj.0.as_ref().map(|o| o.clone_box().translate(&na::Vector3::new(x, y, z))));
+                let new_obj = LObject(obj.0.as_ref().map(|o| {
+                    Box::new(Translate::new(o.clone_box(), [x as f32, y as f32, z as f32]))
+                        as Box<dyn Primitive>
+                }));
                 stack.replace(ctx, wrap_object(ctx, new_obj));
                 Ok(CallbackReturn::Return)
             }),
@@ -89,9 +87,12 @@ fn setup_methods_metatable(ctx: Context<'_>) {
             "rotate",
             Callback::from_fn(&ctx, |ctx, _, mut stack| {
                 let ud: UserData = stack.from_front(ctx)?;
-                let (x, y, z): (Float, Float, Float) = stack.consume(ctx)?;
+                let (x, y, z): (f64, f64, f64) = stack.consume(ctx)?;
                 let obj = ud.downcast_static::<LObject>()?;
-                let new_obj = LObject(obj.0.as_ref().map(|o| o.clone_box().rotate(&na::Vector3::new(x, y, z))));
+                let new_obj = LObject(obj.0.as_ref().map(|o| {
+                    Box::new(Rotate::new(o.clone_box(), [x as f32, y as f32, z as f32]))
+                        as Box<dyn Primitive>
+                }));
                 stack.replace(ctx, wrap_object(ctx, new_obj));
                 Ok(CallbackReturn::Return)
             }),
@@ -104,9 +105,12 @@ fn setup_methods_metatable(ctx: Context<'_>) {
             "scale",
             Callback::from_fn(&ctx, |ctx, _, mut stack| {
                 let ud: UserData = stack.from_front(ctx)?;
-                let (x, y, z): (Float, Float, Float) = stack.consume(ctx)?;
+                let (x, y, z): (f64, f64, f64) = stack.consume(ctx)?;
                 let obj = ud.downcast_static::<LObject>()?;
-                let new_obj = LObject(obj.0.as_ref().map(|o| o.clone_box().scale(&na::Vector3::new(x, y, z))));
+                let new_obj = LObject(obj.0.as_ref().map(|o| {
+                    Box::new(Scale::new(o.clone_box(), [x as f32, y as f32, z as f32]))
+                        as Box<dyn Primitive>
+                }));
                 stack.replace(ctx, wrap_object(ctx, new_obj));
                 Ok(CallbackReturn::Return)
             }),
@@ -132,7 +136,6 @@ fn setup_methods_metatable(ctx: Context<'_>) {
     ctx.set_global("__lobj_mt", metatable).unwrap();
 }
 
-/// Register custom `print` that appends to `buffer` instead of writing to stdout.
 fn setup_print(ctx: Context<'_>, buffer: Arc<Mutex<String>>) {
     ctx.set_global(
         "print",
@@ -140,9 +143,7 @@ fn setup_print(ctx: Context<'_>, buffer: Arc<Mutex<String>>) {
             let mut parts = Vec::new();
             for i in 0..stack.len() {
                 let s = match stack.get(i) {
-                    Value::String(s) => {
-                        std::str::from_utf8(s.as_bytes()).unwrap_or("?").to_string()
-                    }
+                    Value::String(s) => std::str::from_utf8(s.as_bytes()).unwrap_or("?").to_string(),
                     Value::Number(n) => n.to_string(),
                     Value::Integer(n) => n.to_string(),
                     Value::Boolean(b) => b.to_string(),
@@ -159,15 +160,17 @@ fn setup_print(ctx: Context<'_>, buffer: Arc<Mutex<String>>) {
     .unwrap();
 }
 
-/// Register all geometry factory functions and boolean operations as Lua globals.
 fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
     macro_rules! plane_factory {
         ($name:literal, $T:ident) => {
             ctx.set_global(
                 $name,
                 Callback::from_fn(&ctx, |ctx, _, mut stack| {
-                    let d: Float = stack.consume(ctx)?;
-                    stack.replace(ctx, wrap_object(ctx, LObject(Some(Box::new($T::new(d))))));
+                    let d: f64 = stack.consume(ctx)?;
+                    stack.replace(
+                        ctx,
+                        wrap_object(ctx, LObject(Some(Box::new($T::new(d as f32))))),
+                    );
                     Ok(CallbackReturn::Return)
                 }),
             )
@@ -185,8 +188,8 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
     ctx.set_global(
         "Sphere",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
-            let r: Float = stack.consume(ctx)?;
-            stack.replace(ctx, wrap_object(ctx, LObject(Some(Box::new(Sphere::new(r))))));
+            let r: f64 = stack.consume(ctx)?;
+            stack.replace(ctx, wrap_object(ctx, LObject(Some(Box::new(Sphere::new(r as f32))))));
             Ok(CallbackReturn::Return)
         }),
     )
@@ -195,8 +198,11 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
     ctx.set_global(
         "iCylinder",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
-            let r: Float = stack.consume(ctx)?;
-            stack.replace(ctx, wrap_object(ctx, LObject(Some(Box::new(Cylinder::new(r))))));
+            let r: f64 = stack.consume(ctx)?;
+            stack.replace(
+                ctx,
+                wrap_object(ctx, LObject(Some(Box::new(InfCylinder::new(r as f32))))),
+            );
             Ok(CallbackReturn::Return)
         }),
     )
@@ -205,47 +211,47 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
     ctx.set_global(
         "iCone",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
-            let slope: Float = stack.consume(ctx)?;
+            let slope: f64 = stack.consume(ctx)?;
             stack.replace(
                 ctx,
-                wrap_object(ctx, LObject(Some(Box::new(Cone::new(slope, 0.0))))),
+                wrap_object(ctx, LObject(Some(Box::new(InfCone::new(slope as f32, 0.0))))),
             );
             Ok(CallbackReturn::Return)
         }),
     )
     .unwrap();
 
-    // __Box(x, y, z, smooth) — called by the Lua Box() wrapper
+    // __Box(x, y, z, smooth) — 6-plane intersection
     ctx.set_global(
         "__Box",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
-            let (x, y, z, smooth): (Float, Float, Float, Float) = stack.consume(ctx)?;
-            let obj = Intersection::from_vec(
-                vec![
-                    Box::new(PlaneX::new(x / 2.0)) as Box<dyn Object<Float>>,
-                    Box::new(PlaneY::new(y / 2.0)),
-                    Box::new(PlaneZ::new(z / 2.0)),
-                    Box::new(PlaneNegX::new(x / 2.0)),
-                    Box::new(PlaneNegY::new(y / 2.0)),
-                    Box::new(PlaneNegZ::new(z / 2.0)),
-                ],
-                smooth,
-            )
-            .unwrap();
+            let (x, y, z, smooth): (f64, f64, f64, f64) = stack.consume(ctx)?;
+            let (x, y, z, smooth) = (x as f32, y as f32, z as f32, smooth as f32);
+            let children: Vec<Box<dyn Primitive>> = vec![
+                Box::new(PlaneX::new(x / 2.0)),
+                Box::new(PlaneY::new(y / 2.0)),
+                Box::new(PlaneZ::new(z / 2.0)),
+                Box::new(PlaneNegX::new(x / 2.0)),
+                Box::new(PlaneNegY::new(y / 2.0)),
+                Box::new(PlaneNegZ::new(z / 2.0)),
+            ];
+            let obj: Box<dyn Primitive> = Box::new(Intersection::new(children, smooth));
             stack.replace(ctx, wrap_object(ctx, LObject(Some(obj))));
             Ok(CallbackReturn::Return)
         }),
     )
     .unwrap();
 
-    // __Cylinder(length, r1, r2, smooth) — called by the Lua Cylinder() wrapper
+    // __Cylinder(length, r1, r2, smooth)
     ctx.set_global(
         "__Cylinder",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
-            let (length, radius1, radius2, smooth): (Float, Float, Float, Float) =
-                stack.consume(ctx)?;
-            let conie: Box<dyn Object<Float>> = if (radius1 - radius2).abs() < EPSILON {
-                Box::new(Cylinder::new(radius1))
+            let (length, radius1, radius2, smooth): (f64, f64, f64, f64) = stack.consume(ctx)?;
+            let (length, radius1, radius2, smooth) =
+                (length as f32, radius1 as f32, radius2 as f32, smooth as f32);
+
+            let shaft: Box<dyn Primitive> = if (radius1 - radius2).abs() < EPSILON as f32 {
+                Box::new(InfCylinder::new(radius1))
             } else {
                 let slope = (radius2 - radius1).abs() / length;
                 let offset = if radius1 < radius2 {
@@ -253,50 +259,49 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
                 } else {
                     radius2 / slope + length * 0.5
                 };
-                let mut c: Box<dyn Object<Float>> = Box::new(Cone::new(slope, offset));
-                let rmax = radius1.max(radius2);
-                c.set_bbox(&BoundingBox::new(
-                    &na::Point3::new(-rmax, -rmax, -1e10),
-                    &na::Point3::new(rmax, rmax, 1e10),
-                ));
-                c
+                Box::new(InfCone::new(slope, offset))
             };
-            let obj = Intersection::from_vec(
-                vec![conie, Box::new(PlaneZ::new(length / 2.0)), Box::new(PlaneNegZ::new(length / 2.0))],
-                smooth,
-            )
-            .unwrap();
+
+            let children: Vec<Box<dyn Primitive>> = vec![
+                shaft,
+                Box::new(PlaneZ::new(length / 2.0)),
+                Box::new(PlaneNegZ::new(length / 2.0)),
+            ];
+            let obj: Box<dyn Primitive> = Box::new(Intersection::new(children, smooth));
             stack.replace(ctx, wrap_object(ctx, LObject(Some(obj))));
             Ok(CallbackReturn::Return)
         }),
     )
     .unwrap();
 
-    // __PlaneHessian(nx, ny, nz, p) — called by the Lua PlaneHessian() wrapper
+    // __PlaneHessian(nx, ny, nz, p)
     ctx.set_global(
         "__PlaneHessian",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
-            let (nx, ny, nz, p): (Float, Float, Float, Float) = stack.consume(ctx)?;
-            let plane = NormalPlane::from_normal_and_p(na::Vector3::new(nx, ny, nz), p);
+            let (nx, ny, nz, p): (f64, f64, f64, f64) = stack.consume(ctx)?;
+            let plane = NormalPlane::from_normal_and_p(
+                [nx as f32, ny as f32, nz as f32],
+                p as f32,
+            );
             stack.replace(ctx, wrap_object(ctx, LObject(Some(Box::new(plane)))));
             Ok(CallbackReturn::Return)
         }),
     )
     .unwrap();
 
-    // __Plane3Points(ax,ay,az, bx,by,bz, cx,cy,cz) — called by the Lua Plane3Points() wrapper
+    // __Plane3Points(ax,ay,az, bx,by,bz, cx,cy,cz)
     ctx.set_global(
         "__Plane3Points",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
             let (ax, ay, az, bx, by, bz, cx, cy, cz): (
-                Float, Float, Float,
-                Float, Float, Float,
-                Float, Float, Float,
+                f64, f64, f64,
+                f64, f64, f64,
+                f64, f64, f64,
             ) = stack.consume(ctx)?;
             let plane = NormalPlane::from_3_points(
-                &na::Point3::new(ax, ay, az),
-                &na::Point3::new(bx, by, bz),
-                &na::Point3::new(cx, cy, cz),
+                [ax as f32, ay as f32, az as f32],
+                [bx as f32, by as f32, bz as f32],
+                [cx as f32, cy as f32, cz as f32],
             );
             stack.replace(ctx, wrap_object(ctx, LObject(Some(Box::new(plane)))));
             Ok(CallbackReturn::Return)
@@ -308,13 +313,11 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
         "Bend",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
             let ud: UserData = stack.from_front(ctx)?;
-            let width: Float = stack.consume(ctx)?;
+            let width: f64 = stack.consume(ctx)?;
             let obj = ud.downcast_static::<LObject>()?;
-            let new_obj = LObject(
-                obj.0
-                    .as_ref()
-                    .map(|o| Box::new(Bender::new(o.clone_box(), width)) as Box<dyn Object<Float>>),
-            );
+            let new_obj = LObject(obj.0.as_ref().map(|o| {
+                Box::new(Bender::new(o.clone_box(), width as f32)) as Box<dyn Primitive>
+            }));
             stack.replace(ctx, wrap_object(ctx, new_obj));
             Ok(CallbackReturn::Return)
         }),
@@ -325,13 +328,11 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
         "Twist",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
             let ud: UserData = stack.from_front(ctx)?;
-            let height: Float = stack.consume(ctx)?;
+            let height: f64 = stack.consume(ctx)?;
             let obj = ud.downcast_static::<LObject>()?;
-            let new_obj = LObject(
-                obj.0
-                    .as_ref()
-                    .map(|o| Box::new(Twister::new(o.clone_box(), height)) as Box<dyn Object<Float>>),
-            );
+            let new_obj = LObject(obj.0.as_ref().map(|o| {
+                Box::new(Twister::new(o.clone_box(), height as f32)) as Box<dyn Primitive>
+            }));
             stack.replace(ctx, wrap_object(ctx, new_obj));
             Ok(CallbackReturn::Return)
         }),
@@ -341,40 +342,27 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
     ctx.set_global(
         "Mesh",
         Callback::from_fn(&ctx, move |ctx, _, mut stack| {
-            let filename: piccolo::String = stack.consume(ctx)?;
-            let filename_str = std::str::from_utf8(filename.as_bytes())
-                .unwrap_or("")
-                .to_string();
-            let obj = match Mesh::try_new(&filename_str) {
-                Ok(mesh) => {
-                    console
-                        .lock()
-                        .unwrap()
-                        .push_str("Warning: Mesh support is currently horribly inefficient!\n");
-                    LObject(Some(Box::new(mesh)))
-                }
-                Err(e) => {
-                    console
-                        .lock()
-                        .unwrap()
-                        .push_str(&format!("Could not read mesh: {e}\n"));
-                    LObject(None)
-                }
-            };
-            stack.replace(ctx, wrap_object(ctx, obj));
+            let _filename: piccolo::String = stack.consume(ctx)?;
+            console
+                .lock()
+                .unwrap()
+                .push_str("Mesh not supported in GPU mode.\n");
+            stack.replace(ctx, wrap_object(ctx, LObject(None)));
             Ok(CallbackReturn::Return)
         }),
     )
     .unwrap();
 
-    // Union / Intersection / Difference take (table, smooth?)
     ctx.set_global(
         "Union",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
-            let (table, smooth): (Table, Option<Float>) = stack.consume(ctx)?;
+            let (table, smooth): (Table, Option<f64>) = stack.consume(ctx)?;
             let objects = objects_from_table(ctx, table)?;
-            let obj = Union::from_vec(objects, smooth.unwrap_or(0.0))
-                .ok_or_else(|| "Union requires at least one object".into_value(ctx))?;
+            if objects.is_empty() {
+                return Err("Union requires at least one object".into_value(ctx).into());
+            }
+            let obj: Box<dyn Primitive> =
+                Box::new(Union::new(objects, smooth.unwrap_or(0.0) as f32));
             stack.replace(ctx, wrap_object(ctx, LObject(Some(obj))));
             Ok(CallbackReturn::Return)
         }),
@@ -384,10 +372,13 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
     ctx.set_global(
         "Intersection",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
-            let (table, smooth): (Table, Option<Float>) = stack.consume(ctx)?;
+            let (table, smooth): (Table, Option<f64>) = stack.consume(ctx)?;
             let objects = objects_from_table(ctx, table)?;
-            let obj = Intersection::from_vec(objects, smooth.unwrap_or(0.0))
-                .ok_or_else(|| "Intersection requires at least one object".into_value(ctx))?;
+            if objects.is_empty() {
+                return Err("Intersection requires at least one object".into_value(ctx).into());
+            }
+            let obj: Box<dyn Primitive> =
+                Box::new(Intersection::new(objects, smooth.unwrap_or(0.0) as f32));
             stack.replace(ctx, wrap_object(ctx, LObject(Some(obj))));
             Ok(CallbackReturn::Return)
         }),
@@ -397,10 +388,13 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
     ctx.set_global(
         "Difference",
         Callback::from_fn(&ctx, |ctx, _, mut stack| {
-            let (table, smooth): (Table, Option<Float>) = stack.consume(ctx)?;
+            let (table, smooth): (Table, Option<f64>) = stack.consume(ctx)?;
             let objects = objects_from_table(ctx, table)?;
-            let obj = Intersection::difference_from_vec(objects, smooth.unwrap_or(0.0))
-                .ok_or_else(|| "Difference requires at least one object".into_value(ctx))?;
+            if objects.is_empty() {
+                return Err("Difference requires at least one object".into_value(ctx).into());
+            }
+            let obj: Box<dyn Primitive> =
+                Box::new(Difference::new(objects, smooth.unwrap_or(0.0) as f32));
             stack.replace(ctx, wrap_object(ctx, LObject(Some(obj))));
             Ok(CallbackReturn::Return)
         }),
@@ -408,7 +402,6 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
     .unwrap();
 }
 
-/// Lua helper functions that wrap the low-level `__Box`, `__Cylinder`, etc. callbacks.
 const LUA_ALIASES: &str = r#"
 function Box(x, y, z, smooth)
     if type(x) ~= "number" or type(y) ~= "number" or type(z) ~= "number" then
@@ -461,15 +454,11 @@ end
 
 // ── public API ────────────────────────────────────────────────────────────────
 
-/// Evaluate a Lua script in a sandboxed environment with all geometry primitives available.
-///
-/// Returns `(print_output, Option<built_object>)`.
 pub fn eval(script: &str) -> EvalResult {
-    // Lua::core() loads: base, coroutine, math, string, table — no I/O, no require, no load
     let mut lua = Lua::core();
 
     let print_buffer: Arc<Mutex<String>> = Arc::new(Mutex::new(String::new()));
-    let result: Arc<Mutex<Option<Box<dyn Object<Float>>>>> = Arc::new(Mutex::new(None));
+    let result: Arc<Mutex<Option<Box<dyn Primitive>>>> = Arc::new(Mutex::new(None));
 
     {
         let print_buffer = print_buffer.clone();
@@ -486,7 +475,7 @@ pub fn eval(script: &str) -> EvalResult {
                 Callback::from_fn(&ctx, move |ctx, _, mut stack| {
                     let ud: UserData = stack.from_front(ctx)?;
                     let obj = ud.downcast_static::<LObject>()?;
-                    *result.lock().unwrap() = obj.as_object();
+                    *result.lock().unwrap() = obj.as_primitive();
                     stack.clear();
                     Ok(CallbackReturn::Return)
                 }),
@@ -496,14 +485,12 @@ pub fn eval(script: &str) -> EvalResult {
         })?;
     }
 
-    // Load Lua alias helpers
     let aliases_exec = lua.try_enter(|ctx| {
         let closure = Closure::load(ctx, None, LUA_ALIASES.as_bytes())?;
         Ok(ctx.stash(Executor::start(ctx, closure.into(), ())))
     })?;
     lua.execute::<()>(&aliases_exec)?;
 
-    // Run the user script
     let user_exec = lua.try_enter(|ctx| {
         let closure = Closure::load(ctx, Some("script"), script.as_bytes())?;
         Ok(ctx.stash(Executor::start(ctx, closure.into(), ())))

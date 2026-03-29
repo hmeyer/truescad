@@ -8,7 +8,6 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-implicit3d = "0.16"
 js-sys = "0.3"
 nalgebra = "0.34"
 piccolo = "0.3"
