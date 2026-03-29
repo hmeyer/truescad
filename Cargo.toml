@@ -13,7 +13,7 @@ js-sys = "0.3"
 nalgebra = "0.34"
 piccolo = "0.3"
 stl_io = "0.11"
-tessellation = "0.9"
+tessellation = "0.11"
 wasm-bindgen = "0.2"
 
 # getrandom needs explicit WASM features for both the 0.2.x and 0.3.x lines
