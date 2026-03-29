@@ -568,9 +568,9 @@ dependencies = [
 
 [[package]]
 name = "tessellation"
-version = "0.9.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca8a146ca4affc1c78b2cfb780624c40778131b07e6f01217cdd5c3005eb4de9"
+checksum = "f8a75dabdab207bf25bf1268897541c7223be417e4bb2ea23d7c9341ab5d50af"
 dependencies = [
  "bbox",
  "nalgebra",

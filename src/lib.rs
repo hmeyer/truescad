@@ -89,9 +89,6 @@ struct ObjectAdaptor {
 }
 
 impl ImplicitFunction<Float> for ObjectAdaptor {
-    fn bbox(&self) -> &implicit3d::BoundingBox<Float> {
-        self.object.bbox()
-    }
     fn value(&self, p: &nalgebra::Point3<Float>) -> Float {
         self.object.approx_value(p, TESSELLATION_RESOLUTION)
     }

@@ -5,7 +5,9 @@
   "scripts": {
     "build": "node build.mjs",
     "build:release": "node build.mjs --release",
-    "serve": "node serve.mjs"
+    "serve": "node serve.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "test:browser:screenshot": "node tests/browser.mjs --screenshot"
   },
   "devDependencies": {
     "@codemirror/language": "^6.0.0",
@@ -13,6 +15,7 @@
     "@codemirror/theme-one-dark": "^6.0.0",
     "codemirror": "^6.0.0",
     "esbuild": "^0.24.0",
+    "playwright": "^1.58.2",
     "three": "^0.170.0"
   }
 }
