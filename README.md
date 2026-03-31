@@ -120,7 +120,7 @@ npm run build:release
 ## Architecture
 
 - **`src/luascad.rs`** — Lua scripting engine ([piccolo](https://github.com/kyren/piccolo)), exposes all geometry primitives
-- **`src/render.rs`** — ray-marching renderer, writes to a pixel buffer
+- **`src/shader.rs`** — builds the GLSL fragment shader for GPU ray-marching
 - **`src/lib.rs`** — `wasm-bindgen` API surface (`eval`, `render`, `rotate`, `pan`, `tessellate`)
 - **`web/`** — vanilla JS frontend: CodeMirror 6 editor, Three.js mesh view
 - **`build.mjs`** / **`serve.mjs`** — esbuild-based build and dev server
