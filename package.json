@@ -6,6 +6,7 @@
     "build": "node build.mjs",
     "build:release": "node build.mjs --release",
     "serve": "node serve.mjs",
+    "dev": "cargo watch -w src -s 'wasm-pack build --target web' & npm run serve",
     "test:browser": "node tests/browser.mjs",
     "test:browser:screenshot": "node tests/browser.mjs --screenshot"
   },
@@ -14,7 +15,7 @@
     "@codemirror/legacy-modes": "^6.0.0",
     "@codemirror/theme-one-dark": "^6.0.0",
     "codemirror": "^6.0.0",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.27.4",
     "playwright": "^1.58.2",
     "three": "^0.170.0"
   }

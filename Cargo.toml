@@ -1,6 +1,6 @@
 [package]
 name = "truescad"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
 edition = "2024"
 
@@ -8,7 +8,6 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-implicit3d = "0.16"
 js-sys = "0.3"
 nalgebra = "0.34"
 piccolo = "0.3"
@@ -22,4 +21,3 @@ getrandom = { version = "0.2", features = ["js"] }
 getrandom3 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
 
 [dev-dependencies]
-nalgebra = "0.34"

@@ -1,16 +1,15 @@
-use implicit3d::Object;
-use nalgebra as na;
 use truescad::luascad::eval;
+use truescad::primitive::Primitive;
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-fn eval_obj(script: &str) -> Box<dyn Object<f64>> {
+fn eval_obj(script: &str) -> Box<dyn Primitive> {
     let (_, obj) = eval(script).expect("eval failed");
     obj.expect("script did not call build()")
 }
 
-fn val(obj: &dyn Object<f64>, x: f64, y: f64, z: f64) -> f64 {
-    obj.approx_value(&na::Point3::new(x, y, z), 0.)
+fn val(obj: &dyn Primitive, x: f32, y: f32, z: f32) -> f32 {
+    obj.eval([x, y, z])
 }
 
 // ── basic eval behaviour ──────────────────────────────────────────────────────
@@ -66,8 +65,8 @@ fn eval_sphere_inside_outside() {
 fn eval_sphere_bbox() {
     let obj = eval_obj("build(Sphere(2.0))");
     let bb = obj.bbox();
-    assert!(bb.min.x <= -2.0);
-    assert!(bb.max.x >= 2.0);
+    assert!(bb.min[0] <= -2.0);
+    assert!(bb.max[0] >= 2.0);
 }
 
 #[test]
@@ -208,9 +207,11 @@ fn eval_difference() {
 
 #[test]
 fn eval_bend() {
-    // Bender deforms the object non-trivially; just verify it builds without error.
+    // Bender deforms the object non-trivially; just verify it builds and has a finite bbox.
     let obj = eval_obj("build(Bend(Box(4,1,1), 4.0))");
-    assert!(obj.bbox().is_finite());
+    let bb = obj.bbox();
+    assert!(bb.min.iter().all(|v| v.is_finite()));
+    assert!(bb.max.iter().all(|v| v.is_finite()));
 }
 
 #[test]
