@@ -44,8 +44,8 @@ const ctx = await esbuild.context({
 });
 
 await ctx.rebuild();
-const { host } = await ctx.serve({ servedir: resolve(ROOT, "dist"), port: PORT });
-const url = `http://${host}:${PORT}`;
+const { hosts } = await ctx.serve({ servedir: resolve(ROOT, "dist"), port: PORT });
+const url = `http://${hosts[0]}:${PORT}`;
 console.log(`Server: ${url}`);
 
 // ── 3. Run Playwright test ────────────────────────────────────────────────────

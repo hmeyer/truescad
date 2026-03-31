@@ -28,7 +28,7 @@ const ctx = await esbuild.context({
 
 await ctx.watch();
 
-const { host, port } = await ctx.serve({ servedir: "dist", port: 8080 });
-console.log(`Dev server running at http://${host}:${port}`);
+const { hosts, port } = await ctx.serve({ servedir: "dist", port: 8080 });
+console.log(`Dev server running at http://${hosts[0]}:${port}`);
 console.log("JS/CSS changes rebuild automatically.");
 console.log("Re-run `wasm-pack build --target web` after Rust changes, then refresh.");
