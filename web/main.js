@@ -9,10 +9,24 @@ import init, { run_script, get_shader_source, get_world_transform, get_object_wi
                rotate, pan, tessellate } from "./truescad.js";
 
 const INITIAL_SCRIPT =
-`cube = Box(1, 1, 1, 0.02)
-sphere = Sphere(0.45)
-result = Difference({cube, sphere}, 0.02)
-result = result:scale(15, 15, 15)
+`-- A rounded box with a spherical cavity, pierced by a 3-axis cylinder cross.
+
+-- Hollow box: sphere radius > box half-width, so it carves through all 6 faces
+box      = Box(1, 1, 1, 0.05)       -- rounded unit cube (smooth = 0.05)
+cavity   = Sphere(0.6)              -- sphere slightly larger than the box
+hollow   = Difference({box, cavity}, 0.05)
+
+-- Three-axis cross: one cylinder rotated onto each axis
+arm      = Cylinder({l=1.5, r=0.3, s=0.02})  -- shaft along Z, smooth caps
+cross    = Union({
+  arm,                              -- Z axis
+  arm:rotate(tau/4, 0, 0),          -- Y axis  (90° around X)
+  arm:rotate(0, tau/4, 0),          -- X axis  (90° around Y)
+}, 0.01)                            -- slight blend where arms meet
+
+-- Combine: hard union so box and cross meet with a sharp seam
+result   = Union({hollow, cross}, 0.0)
+result   = result:scale(10, 10, 10)
 build(result)
 `;
 

@@ -114,22 +114,34 @@ try {
     console.log("  OK: script ran without error");
   }
 
-  // Check that the WebGL canvas has rendered a non-background pixel at the center
+  // Check that the WebGL canvas has rendered at least one non-background pixel.
+  // Sample the center and four points at 25% offsets — robust to shapes with
+  // a hole at the center (e.g. a sphere with a bore).
   console.log("── Check pixel ──");
-  const pixel = await page.evaluate(() => {
+  const pixels = await page.evaluate(() => {
     const canvas = document.getElementById("preview-canvas");
     const gl = canvas.getContext("webgl2");
-    const cx = canvas.width  >> 1;
-    const cy = canvas.height >> 1;
-    const buf = new Uint8Array(4);
-    gl.readPixels(cx, cy, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, buf);
-    return Array.from(buf);
+    const w = canvas.width, h = canvas.height;
+    const cx = w >> 1, cy = h >> 1;
+    const pts = [
+      [cx,            cy           ],
+      [cx + (cx >> 1), cy           ],
+      [cx - (cx >> 1), cy           ],
+      [cx,             cy + (cy >> 1)],
+      [cx,             cy - (cy >> 1)],
+    ];
+    return pts.map(([x, y]) => {
+      const buf = new Uint8Array(4);
+      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+      return Array.from(buf);
+    });
   });
-  const BACKGROUND = [31, 31, 31, 255]; // vec3(0.12) before gamma
-  const isBackground = pixel.every((v, i) => Math.abs(v - BACKGROUND[i]) <= 4);
-  console.log(`  center pixel: rgba(${pixel.join(",")})`);
-  if (isBackground) {
-    console.error("  FAIL: canvas center is background color — nothing rendered");
+  const BACKGROUND = [31, 31, 31, 255]; // vec3(0.12) un-gamma-corrected
+  const isBackground = p => p.every((v, i) => Math.abs(v - BACKGROUND[i]) <= 4);
+  const anyLit = pixels.some(p => !isBackground(p));
+  console.log(`  sampled pixels: ${pixels.map(p => `(${p.join(",")})`).join(" ")}`);
+  if (!anyLit) {
+    console.error("  FAIL: all sampled pixels are background color — nothing rendered");
     passed = false;
   } else {
     console.log("  OK: non-background pixel rendered");

@@ -403,6 +403,9 @@ fn setup_factories(ctx: Context<'_>, console: Arc<Mutex<String>>) {
 }
 
 const LUA_ALIASES: &str = r#"
+pi  = 3.14159265358979323846
+tau = 6.28318530717958647692
+
 function Box(x, y, z, smooth)
     if type(x) ~= "number" or type(y) ~= "number" or type(z) ~= "number" then
         error("all arguments must be numbers")
