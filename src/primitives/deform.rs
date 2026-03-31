@@ -1,7 +1,5 @@
 use crate::primitive::{Bbox, GlslCtx, Primitive};
 
-const INF: f32 = 1e10;
-
 // ── Bender ────────────────────────────────────────────────────────────────────
 // Bends the XZ plane based on the Y coordinate.
 // angle = p.y / width  (radians)
