@@ -9,24 +9,22 @@ import init, { run_script, get_shader_source, get_world_transform, get_object_wi
                rotate, pan, tessellate } from "./truescad.js";
 
 const INITIAL_SCRIPT =
-`-- A rounded box with a spherical cavity, pierced by a 3-axis cylinder cross.
+`-- Centre: 3-axis cylinder cross
+local cyl = Cylinder({l=1.5, r=0.25, s=0.02})
+cross   = Union({cyl, cyl:rotate(tau/4,0,0), cyl:rotate(0,tau/4,0)}, 0.01)
 
--- Hollow box: sphere radius > box half-width, so it carves through all 6 faces
-box      = Box(1, 1, 1, 0.05)       -- rounded unit cube (smooth = 0.05)
-cavity   = Sphere(0.6)              -- sphere slightly larger than the box
-hollow   = Difference({box, cavity}, 0.05)
+-- Left: tall arm bent into a deep arc (Bend rotates XZ based on Y)
+arm     = Box(0.3, 1.8, 0.3, 0.02)
+bent    = Bend(arm, 1.0)         -- ±0.9 rad tip-to-tip (≈ ±52°)
+bent    = bent:translate(-1.5, 0, 0)
 
--- Three-axis cross: one cylinder rotated onto each axis
-arm      = Cylinder({l=1.5, r=0.3, s=0.02})  -- shaft along Z, smooth caps
-cross    = Union({
-  arm,                              -- Z axis
-  arm:rotate(tau/4, 0, 0),          -- Y axis  (90° around X)
-  arm:rotate(0, tau/4, 0),          -- X axis  (90° around Y)
-}, 0.01)                            -- slight blend where arms meet
+-- Right: square column with a 180° twist along Z (Twist rotates XY based on Z)
+col     = Box(0.4, 0.4, 1.8, 0.02)
+twisted = Twist(col, 3.6)        -- height=3.6 → 180° total twist
+twisted = twisted:translate(1.5, 0, 0)
 
--- Combine: hard union so box and cross meet with a sharp seam
-result   = Union({hollow, cross}, 0.0)
-result   = result:scale(10, 10, 10)
+result  = Union({cross, bent, twisted}, 0.0)
+result  = result:scale(8, 8, 8)
 build(result)
 `;
 

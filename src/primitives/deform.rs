@@ -38,12 +38,13 @@ impl Primitive for Bender {
         self.inner.eval([x * c - z * s, x * s + z * c, y])
     }
     fn bbox(&self) -> Bbox {
-        // Conservative: a sphere containing the inner bbox
+        // After bending: new_z = old_y, and new_x/new_y = rotation of old_x/old_z.
+        // Max |new_x| = max |new_y| ≤ sqrt(x_half² + z_half²).
         let b = self.inner.bbox();
-        let r = b.min[0].abs().max(b.max[0].abs())
-            .max(b.min[1].abs()).max(b.max[1].abs())
-            .max(b.min[2].abs()).max(b.max[2].abs());
-        Bbox { min: [-r, b.min[1], -r], max: [r, b.max[1], r] }
+        let x_half = b.min[0].abs().max(b.max[0].abs());
+        let z_half = b.min[2].abs().max(b.max[2].abs());
+        let r = (x_half * x_half + z_half * z_half).sqrt();
+        Bbox { min: [-r, -r, b.min[1]], max: [r, r, b.max[1]] }
     }
     fn clone_box(&self) -> Box<dyn Primitive> {
         Box::new(self.clone())
